@@ -10,6 +10,7 @@ import {
   FiUser,
   FiBox,
   FiBarChart2,
+  FiImage
 } from "react-icons/fi";
 import { usePathname } from "next/navigation";
 
@@ -22,6 +23,7 @@ function Sidebar() {
     { href: "/dashboard/addProducts", label: "Add Products", icon: <FiBox /> },
     { href: "/dashboard/users", label: "Users", icon: <FiUser /> },
     { href: "/dashboard/reports", label: "Reports", icon: <FiBarChart2 /> },
+    { href: "/dashboard/bannerOffers", label: "Banner Offers", icon: <FiImage /> },
   ];
 
   return (

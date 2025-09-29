@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import DragDropUpload from "@/components/DragDropUpload";
 
 interface IFormInputs {
   title: string;
@@ -68,16 +69,16 @@ export default function AddProductPage() {
     mutation.mutate(data);
   };
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setThumbnailFile(e.target.files[0]);
+  const handleThumbnailChange = (files: File[]) => {
+    if (files.length > 0) {
+      setThumbnailFile(files[0]);
+    } else {
+      setThumbnailFile(null);
     }
   };
 
-  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImageFiles(Array.from(e.target.files));
-    }
+  const handleImagesChange = (files: File[]) => {
+    setImageFiles(files);
   };
 
   return (
@@ -169,37 +170,39 @@ export default function AddProductPage() {
         </div>
 
         {/* Images */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-black">Product Images *</h3>
-          <p className="text-sm text-gray-600">At least one image is required</p>
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Product Images *</h3>
+            <p className="text-sm text-gray-600 mb-4">Upload high-quality images for your product</p>
+          </div>
           
           <div>
-            <label className="block font-semibold mb-2 text-black">Thumbnail Image</label>
-            <input
-              type="file"
+            <h4 className="text-md font-semibold text-gray-900 mb-3">Main Product Image</h4>
+            <DragDropUpload
+              onFilesChange={handleThumbnailChange}
+              multiple={false}
               accept="image/*"
-              onChange={handleThumbnailChange}
-              className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black "
+              maxSize={8}
+              maxFiles={1}
+              label="Upload Thumbnail"
+              description="Drag and drop your main product image here, or click to select"
+              files={thumbnailFile ? [thumbnailFile] : []}
+              className="mb-6"
             />
-            {thumbnailFile && (
-              <p className="text-green-600 text-sm mt-1 ">Selected: {thumbnailFile.name}</p>
-            )}
           </div>
 
           <div>
-            <label className="block font-semibold mb-2 text-black">Additional Images</label>
-            <input
-              type="file"
+            <h4 className="text-md font-semibold text-gray-900 mb-3">Additional Images</h4>
+            <DragDropUpload
+              onFilesChange={handleImagesChange}
+              multiple={true}
               accept="image/*"
-              multiple
-              onChange={handleImagesChange}
-              className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black "
+              maxSize={8}
+              maxFiles={5}
+              label="Upload Additional Images"
+              description="Drag and drop additional product images here, or click to select multiple files"
+              files={imageFiles}
             />
-            {imageFiles.length > 0 && (
-              <p className="text-green-600 text-sm mt-1">
-                Selected {imageFiles.length} image(s): {imageFiles.map(f => f.name).join(', ')}
-              </p>
-            )}
           </div>
         </div>
 

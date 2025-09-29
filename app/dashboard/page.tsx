@@ -1,8 +1,11 @@
+import DashboardHome from '@/components/DashboardHome'
 import React from 'react'
 
 function page() {
   return (
-    <div>page</div>
+    <div>
+      <DashboardHome />
+    </div>
   )
 }
 
