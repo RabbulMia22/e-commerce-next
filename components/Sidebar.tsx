@@ -27,7 +27,7 @@ function Sidebar() {
   return (
     <>
       {/* Overlay for mobile */}
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex bg-gray-100">
       {sidebarOpen && (
         <div
           className=" fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden transition-opacity duration-300 ease-in-out"
