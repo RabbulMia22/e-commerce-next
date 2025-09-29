@@ -18,4 +18,5 @@ const BannerOfferSchema: Schema<IBannerOffer> = new Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
-export const BannerOffer: Model<IBannerOffer> = mongoose.model("BannerOffer", BannerOfferSchema);
+export const BannerOffer: Model<IBannerOffer> = 
+  mongoose.models.BannerOffer || mongoose.model("BannerOffer", BannerOfferSchema);
