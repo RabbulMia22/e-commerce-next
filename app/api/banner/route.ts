@@ -46,6 +46,10 @@ export async function POST(request: NextRequest) {
     for (const [key, value] of formData.entries()) {
       console.log(`  ${key}:`, value, typeof value);
     }
+    
+    // Check specifically for date fields
+    console.log('[POST] FormData has startDate:', formData.has('startDate'));
+    console.log('[POST] FormData has endDate:', formData.has('endDate'));
 
     // Extract banner data
     const title = formData.get('title') as string;
@@ -55,6 +59,8 @@ export async function POST(request: NextRequest) {
     const startDate = formData.get('startDate') as string;
     const endDate = formData.get('endDate') as string;
 
+    console.log('[POST] Raw formData startDate:', startDate, typeof startDate);
+    console.log('[POST] Raw formData endDate:', endDate, typeof endDate);
     console.log('[POST] Raw formData discount:', discountString, typeof discountString);
     
     // Parse discount with validation
@@ -101,12 +107,25 @@ export async function POST(request: NextRequest) {
       title,
       imageUrl,
       linkUrl,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
       isActive: isActive !== undefined ? isActive : true,
       createdAt: new Date(),
       updatedAt: new Date()
     };
+
+    // Add dates only if they are valid
+    if (startDate && startDate.trim() !== '' && startDate !== 'null' && startDate !== 'undefined') {
+      bannerData.startDate = new Date(startDate);
+      console.log('[POST] Added startDate:', bannerData.startDate);
+    } else {
+      console.log('[POST] No valid startDate provided:', startDate);
+    }
+
+    if (endDate && endDate.trim() !== '' && endDate !== 'null' && endDate !== 'undefined') {
+      bannerData.endDate = new Date(endDate);
+      console.log('[POST] Added endDate:', bannerData.endDate);
+    } else {
+      console.log('[POST] No valid endDate provided:', endDate);
+    }
 
     // Add discount if provided
     if (discount !== undefined) {
@@ -180,7 +199,11 @@ export async function PUT(request: NextRequest) {
     const linkUrl = formData.get('linkUrl') as string;
     const discountString = formData.get('discount') as string;
     const isActive = formData.get('isActive');
+    const startDate = formData.get('startDate') as string;
+    const endDate = formData.get('endDate') as string;
 
+    console.log('[PUT] Raw formData startDate:', startDate, typeof startDate);
+    console.log('[PUT] Raw formData endDate:', endDate, typeof endDate);
     console.log('[PUT] Raw formData discount:', discountString, typeof discountString);
     
     // Parse discount with validation
@@ -201,6 +224,19 @@ export async function PUT(request: NextRequest) {
     if (linkUrl) updateData.linkUrl = linkUrl;
     if (discount !== undefined) updateData.discount = discount;
     if (isActive !== null) updateData.isActive = isActive === 'true';
+    if (startDate && startDate.trim() !== '' && startDate !== 'null' && startDate !== 'undefined') {
+      updateData.startDate = new Date(startDate);
+      console.log('[PUT] Added startDate to updateData:', updateData.startDate);
+    } else {
+      console.log('[PUT] No valid startDate provided for update:', startDate);
+    }
+    
+    if (endDate && endDate.trim() !== '' && endDate !== 'null' && endDate !== 'undefined') {
+      updateData.endDate = new Date(endDate);
+      console.log('[PUT] Added endDate to updateData:', updateData.endDate);
+    } else {
+      console.log('[PUT] No valid endDate provided for update:', endDate);
+    }
     
     console.log('[PUT] Update data object:', JSON.stringify(updateData, null, 2));
 
