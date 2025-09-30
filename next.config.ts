@@ -6,11 +6,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '10mb'
     }
   },
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb'
-    }
-  },
   images: {
     domains: ['res.cloudinary.com', 'via.placeholder.com'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

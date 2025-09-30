@@ -1,24 +1,14 @@
-'use client';
+﻿'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
+import { Pagination, Autoplay } from 'swiper/modules';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { 
-  FiChevronLeft, 
-  FiChevronRight, 
-  FiTag, 
-  FiTrendingUp,
-  FiShoppingBag,
-  FiArrowRight
-} from 'react-icons/fi';
-
-// Import Swiper styles
 import 'swiper/css';
-import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import 'swiper/css/effect-fade';
 
 interface IBanner {
   _id: string;
@@ -28,185 +18,189 @@ interface IBanner {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  discount?: number;
 }
 
 function Banner() {
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Fetch active banners
-  const { data: banners = [], isLoading: bannersLoading } = useQuery({
+  const { data: banners = [], isLoading } = useQuery({
     queryKey: ['active-banners'],
     queryFn: async () => {
       const response = await axios.get('/api/banner?active=true');
       return response.data.data as IBanner[];
-    }
+    },
   });
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Define different attractive gradient colors for each slide
+  const getSlideGradient = (index: number) => {
+    const gradients = [
+      // Slide 0: Sunset Orange to Hot Pink (Instagram-style)
+      'bg-gradient-to-r from-orange-400 to-pink-500 lg:bg-gradient-to-br lg:from-orange-500 lg:via-red-500 lg:to-pink-600',
+      // Slide 1: Electric Purple to Neon Blue
+      'bg-gradient-to-r from-purple-500 to-blue-500 lg:bg-gradient-to-br lg:from-purple-600 lg:via-indigo-500 lg:to-blue-600',
+      // Slide 2: Emerald Green to Turquoise
+      'bg-gradient-to-r from-emerald-400 to-teal-500 lg:bg-gradient-to-br lg:from-emerald-500 lg:via-green-500 lg:to-teal-600',
+      // Slide 3: Magenta to Deep Purple (Vibrant)
+      'bg-gradient-to-r from-fuchsia-500 to-purple-600 lg:bg-gradient-to-br lg:from-fuchsia-600 lg:via-violet-600 lg:to-purple-700',
+      // Slide 4: Golden Yellow to Coral Red
+      'bg-gradient-to-r from-yellow-400 to-red-500 lg:bg-gradient-to-br lg:from-yellow-500 lg:via-orange-500 lg:to-red-600',
+      // Slide 5: Cyan to Electric Blue (Neon)
+      'bg-gradient-to-r from-cyan-400 to-blue-600 lg:bg-gradient-to-br lg:from-cyan-500 lg:via-sky-500 lg:to-blue-700',
+      // Slide 6: Rose Gold to Deep Pink
+      'bg-gradient-to-r from-rose-400 to-pink-600 lg:bg-gradient-to-br lg:from-rose-500 lg:via-pink-500 lg:to-fuchsia-600',
+      // Slide 7: Lime Green to Forest Green
+      'bg-gradient-to-r from-lime-400 to-green-600 lg:bg-gradient-to-br lg:from-lime-500 lg:via-green-500 lg:to-emerald-700'
+    ];
+    
+    // Cycle through gradients if there are more banners than defined gradients
+    return gradients[index % gradients.length];
+  };
 
-  if (bannersLoading || isLoading) {
+  if (isLoading) {
     return (
-      <div className="relative w-full h-[500px] md:h-[600px] bg-gradient-to-r from-blue-100 to-purple-100 animate-pulse">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">Loading exciting offers...</p>
-          </div>
-        </div>
+      <div className="w-full h-[300px] sm:h-[400px] flex items-center justify-center bg-gray-100 animate-pulse">
+        <p className="text-gray-600 font-medium">Loading banners...</p>
       </div>
     );
   }
 
   if (!banners || banners.length === 0) {
     return (
-      <div className="relative w-full h-[400px] bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 overflow-hidden">
-        <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-        <div className="absolute inset-0 flex items-center justify-center text-white">
-          <div className="text-center px-4">
-            <FiTag className="w-16 h-16 mx-auto mb-4 animate-bounce" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Amazing Offers Coming Soon!</h2>
-            <p className="text-lg opacity-90">Stay tuned for incredible deals and promotions</p>
-          </div>
-        </div>
+      <div className="w-full h-[300px] sm:h-[400px] flex items-center justify-center bg-gradient-to-r from-orange-500 to-yellow-500 text-white">
+        <p className="text-lg sm:text-xl font-bold">No banners available</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-[500px] md:h-[600px] group">
+    <div className="w-full h-[300px] sm:h-[400px] lg:h-[500px] xl:h-[600px]">
       <Swiper
-        modules={[Navigation, Pagination, Autoplay, EffectFade]}
-        spaceBetween={0}
-        slidesPerView={1}
-        navigation={{
-          nextEl: '.swiper-button-next-custom',
-          prevEl: '.swiper-button-prev-custom',
-        }}
-        pagination={{
-          el: '.swiper-pagination-custom',
-          clickable: true,
-          renderBullet: (index, className) => {
-            return `<span class="${className} w-3 h-3 bg-white bg-opacity-50 rounded-full cursor-pointer transition-all duration-300 hover:bg-opacity-100"></span>`;
-          },
-        }}
-        autoplay={{
-          delay: 5000,
-          disableOnInteraction: false,
-          pauseOnMouseEnter: true,
-        }}
-        effect="fade"
-        fadeEffect={{
-          crossFade: true
-        }}
+        pagination={{ dynamicBullets: true, clickable: true }}
+        modules={[Pagination, Autoplay]}
+        autoplay={{ delay: 4000, disableOnInteraction: false }}
         loop={banners.length > 1}
-        className="w-full h-full"
+        className="w-full h-full rounded-lg lg:rounded-xl overflow-hidden shadow-md lg:shadow-2xl"
       >
         {banners.map((banner, index) => (
           <SwiperSlide key={banner._id}>
-            <div className="relative w-full h-full overflow-hidden bg-gray-900">
-              {/* Background Image with Overlay */}
-              <div className="absolute inset-0">
-                <img
-                  src={banner.imageUrl}
-                  alt={banner.title}
-                  className="w-full h-full object-cover transition-transform duration-[7000ms] hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
-              </div>
-
-              {/* Content Overlay */}
-              <div className="absolute inset-0 flex items-center">
-                <div className="container mx-auto px-6 md:px-12">
-                  <div className="max-w-2xl">
-                    {/* Animated Badge */}
-                    <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white text-sm font-semibold rounded-full mb-6 animate-pulse shadow-lg">
-                      <FiTrendingUp className="w-4 h-4 mr-2" />
-                      LIMITED TIME OFFER
-                    </div>
-
-                    {/* Main Title */}
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 leading-tight">
-                      <span className="block transform transition-all duration-1000 delay-300 translate-y-0 opacity-100">
-                        {banner.title.split(' ').map((word, i) => (
-                          <span
-                            key={i}
-                            className="inline-block mr-3 animate-fadeInUp"
-                            style={{ animationDelay: `${i * 0.1}s` }}
-                          >
-                            {word}
-                          </span>
-                        ))}
-                      </span>
-                    </h1>
-
-                    {/* Offer Description */}
-                    <p className="text-xl md:text-2xl text-gray-200 mb-8 leading-relaxed animate-fadeInUp animation-delay-500">
-                      {banner.linkUrl}
-                    </p>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 animate-fadeInUp animation-delay-700">
-                      <button className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-lg rounded-full hover:from-orange-600 hover:to-red-600 transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl">
-                        <FiShoppingBag className="w-5 h-5 mr-3 group-hover:animate-bounce" />
-                        Shop Now
-                        <FiArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                      
-                      <button className="inline-flex items-center justify-center px-8 py-4 bg-white/20 backdrop-blur-sm text-white font-semibold text-lg rounded-full border-2 border-white/30 hover:bg-white/30 hover:border-white/50 transition-all duration-300">
-                        Learn More
-                      </button>
-                    </div>
-
-                    {/* Feature Tags */}
-                    <div className="flex flex-wrap gap-3 mt-8 animate-fadeInUp animation-delay-1000">
-                      {['Free Shipping', '30-Day Returns', '24/7 Support'].map((feature, i) => (
-                        <span
-                          key={i}
-                          className="px-3 py-1 bg-white/10 backdrop-blur-sm text-white text-sm rounded-full border border-white/20"
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+            <div className={`relative w-full h-full ${getSlideGradient(index)}`}>
+              
+              <div className="hidden lg:block absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-full h-full"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle at 25% 25%, #ffffff 0%, transparent 50%), radial-gradient(circle at 75% 75%, #ffffff 0%, transparent 50%)'
+                  }}>
                 </div>
               </div>
 
-              {/* Decorative Elements */}
-              <div className="absolute top-10 right-10 w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full opacity-20 animate-pulse"></div>
-              <div className="absolute bottom-20 right-20 w-12 h-12 bg-gradient-to-br from-pink-400 to-red-500 rounded-full opacity-30 animate-bounce"></div>
-              <div className="absolute top-1/3 right-1/4 w-6 h-6 bg-white rounded-full opacity-40 animate-ping"></div>
+              <div className="container mx-auto h-full flex items-center px-4 sm:px-6 lg:px-8 xl:px-12 relative z-10">
+                <div className="grid grid-cols-2 gap-4 lg:gap-8 xl:gap-12 h-full items-center w-full">
+                  
+                  <div className="flex flex-col justify-center space-y-2 sm:space-y-3 lg:space-y-6 xl:space-y-8 lg:pr-8">
+                    
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 lg:gap-3">
+                      <div className="bg-red-600 text-white px-2 sm:px-3 lg:px-4 xl:px-6 py-1 lg:py-2 rounded-full text-xs sm:text-sm lg:text-base xl:text-lg font-bold animate-pulse">
+                         HOT DEAL
+                      </div>
+                      {banner.discount && (
+                        <div className="bg-white text-orange-600 px-2 sm:px-3 lg:px-4 xl:px-6 py-1 lg:py-2 rounded-full text-xs sm:text-sm lg:text-base xl:text-lg font-bold shadow-lg">
+                          {banner.discount}% OFF
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 lg:space-y-4">
+                      <h1 className="text-lg sm:text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-extrabold text-white leading-tight lg:leading-none drop-shadow-lg">
+                        {banner.title}
+                      </h1>
+                      <div className="w-12 sm:w-16 lg:w-24 xl:w-32 h-1 lg:h-2 bg-white rounded-full"></div>
+                    </div>
+
+                    <p className="text-xs sm:text-sm lg:text-lg xl:text-xl text-white opacity-90 lg:opacity-95 leading-relaxed max-w-md lg:max-w-lg xl:max-w-xl">
+                      Discover amazing deals and premium quality products at unbeatable prices. Limited time offers!
+                    </p>
+
+                    <div className="hidden lg:flex items-center gap-6 xl:gap-8 text-white">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 xl:w-10 xl:h-10 bg-white/20 rounded-full flex items-center justify-center">
+                          
+                        </div>
+                        <span className="text-sm xl:text-base font-medium">Free Delivery</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 xl:w-10 xl:h-10 bg-white/20 rounded-full flex items-center justify-center">
+                          
+                        </div>
+                        <span className="text-sm xl:text-base font-medium">Easy Returns</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 xl:w-10 xl:h-10 bg-white/20 rounded-full flex items-center justify-center">
+                          
+                        </div>
+                        <span className="text-sm xl:text-base font-medium">4.8 Rating</span>
+                      </div>
+                    </div>
+
+                    <Link href={banner.linkUrl}>
+                      <button className="bg-white text-orange-600 font-semibold py-2 px-4 sm:px-6 lg:py-4 lg:px-8 xl:py-5 xl:px-12 rounded-full text-xs sm:text-sm lg:text-base xl:text-lg hover:bg-orange-100 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 lg:gap-3 w-fit">
+                         Shop Now
+                        <svg
+                          className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 7l5 5m0 0l-5 5m5-5H6"
+                          />
+                        </svg>
+                      </button>
+                    </Link>
+                  </div>
+
+                  <div className="relative flex items-center justify-center">
+                    <div className="relative w-full h-[350px] sm:h-[250px] lg:h-[350px] xl:h-[450px] 2xl:h-[500px]">
+                      
+                      <div className="relative w-full h-full lg:bg-white/10 lg:backdrop-blur-sm lg:rounded-2xl lg:p-4 xl:p-6">
+                        <Image
+                          src={banner.imageUrl}
+                          alt={banner.title}
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 40vw, 35vw"
+                          className="object-contain hover:scale-105 transition-transform duration-500"
+                          priority={index === 0}
+                        />
+                      </div>
+
+                      {banner.discount && (
+                        <div className="absolute top-2 right-2 lg:top-4 lg:right-4 xl:top-6 xl:right-6 bg-red-600 text-white px-2 py-1 lg:px-3 lg:py-2 xl:px-4 xl:py-3 rounded-full text-xs lg:text-sm xl:text-base font-bold shadow-lg">
+                          -{banner.discount}%
+                        </div>
+                      )}
+
+                      <div className="hidden lg:flex absolute top-4 left-4 xl:top-6 xl:left-6 w-10 h-10 xl:w-12 xl:h-12 bg-white/20 backdrop-blur-sm rounded-full items-center justify-center cursor-pointer hover:bg-white/30 transition-colors">
+                        <span className="text-white text-lg xl:text-xl"></span>
+                      </div>
+
+                      <div className="hidden lg:block absolute bottom-4 right-4 xl:bottom-6 xl:right-6 bg-red-500/90 backdrop-blur-sm text-white px-3 py-2 xl:px-4 xl:py-3 rounded-full text-sm xl:text-base font-bold animate-pulse">
+                         2h 45m
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute top-4 right-4 lg:top-8 lg:right-8 xl:top-12 xl:right-12 w-12 h-12 lg:w-20 lg:h-20 xl:w-24 xl:h-24 bg-white/20 rounded-full animate-pulse"></div>
+                <div className="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 xl:bottom-12 xl:left-12 w-8 h-8 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-white/20 rounded-full animate-bounce"></div>
+                
+                <div className="hidden lg:block absolute top-1/3 right-1/4 w-6 h-6 xl:w-8 xl:h-8 bg-white/10 rounded-full animate-ping"></div>
+                <div className="hidden lg:block absolute bottom-1/3 left-1/4 w-4 h-4 xl:w-6 xl:h-6 bg-white/10 rounded-full animate-pulse"></div>
+              </div>
             </div>
           </SwiperSlide>
         ))}
       </Swiper>
-
-      {/* Custom Navigation Buttons */}
-      {banners.length > 1 && (
-        <>
-          <button className="swiper-button-prev-custom absolute left-4 md:left-8 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300 opacity-0 group-hover:opacity-100">
-            <FiChevronLeft className="w-6 h-6" />
-          </button>
-          <button className="swiper-button-next-custom absolute right-4 md:right-8 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300 opacity-0 group-hover:opacity-100">
-            <FiChevronRight className="w-6 h-6" />
-          </button>
-        </>
-      )}
-
-      {/* Custom Pagination */}
-      {banners.length > 1 && (
-        <div className="swiper-pagination-custom absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex space-x-2"></div>
-      )}
-
-      {/* Slide Counter */}
-      {banners.length > 1 && (
-        <div className="absolute top-8 right-8 z-10 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm font-medium">
-          1 / {banners.length}
-        </div>
-      )}
     </div>
   );
 }

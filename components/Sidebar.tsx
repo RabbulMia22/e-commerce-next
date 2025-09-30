@@ -19,6 +19,7 @@ function Sidebar() {
   const pathname = usePathname();
 
   const navItems = [
+    { href: "/", label: "Home", icon: <FiHome /> },
     { href: "/dashboard", label: "Dashboard", icon: <FiHome /> },
     { href: "/dashboard/addProducts", label: "Add Products", icon: <FiBox /> },
     { href: "/dashboard/users", label: "Users", icon: <FiUser /> },

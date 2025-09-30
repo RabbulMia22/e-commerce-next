@@ -83,6 +83,10 @@ function Navbar() {
                 </a>
                 <a href="#" className="flex flex-col items-center justify-center text-gray-700 hover:text-indigo-600">
                     <FaUserCircle size={20} />
+                    <span className="text-xs mt-1">Dashboard</span>
+                </a>
+                <a href="#" className="flex flex-col items-center justify-center text-gray-700 hover:text-indigo-600">
+                    <FaUserCircle size={20} />
                     <span className="text-xs mt-1">Account</span>
                 </a>
             </div>

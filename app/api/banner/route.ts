@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
     const banners = await BannerOffer.find(query)
       .sort({ createdAt: -1 });
 
+    console.log('[GET] Fetched banners:', banners.length);
+
     return NextResponse.json({
       success: true,
       data: banners,
@@ -39,10 +41,31 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
 
+    // Debug: Log all FormData entries
+    console.log('[POST] FormData entries:');
+    for (const [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value, typeof value);
+    }
+
     // Extract banner data
     const title = formData.get('title') as string;
     const linkUrl = formData.get('linkUrl') as string;
+    const discountString = formData.get('discount') as string;
     const isActive = formData.get('isActive') === 'true';
+    const startDate = formData.get('startDate') as string;
+    const endDate = formData.get('endDate') as string;
+
+    console.log('[POST] Raw formData discount:', discountString, typeof discountString);
+    
+    // Parse discount with validation
+    let discount: number | undefined = undefined;
+    
+    if (discountString && discountString.trim() !== '' && discountString !== 'null' && discountString !== 'undefined') {
+      const parsed = parseFloat(discountString);
+      discount = !isNaN(parsed) ? parsed : undefined;
+    }
+    
+    console.log('[POST] Parsed discount:', discount, typeof discount);
 
     // Validate required fields
     if (!title || !linkUrl) {
@@ -74,23 +97,37 @@ export async function POST(request: NextRequest) {
     }
 
     // Create banner object
-    const bannerData = {
+    const bannerData: any = {
       title,
       imageUrl,
       linkUrl,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
       isActive: isActive !== undefined ? isActive : true,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
+    // Add discount if provided
+    if (discount !== undefined) {
+      bannerData.discount = discount;
+      console.log('[POST] Added discount to bannerData:', discount);
+    } else {
+      console.log('[POST] No discount to add - discount was undefined');
+    }
+
+    console.log('[POST] Banner data object:', JSON.stringify(bannerData, null, 2));
+
     // Create and save banner
     const banner = new BannerOffer(bannerData);
-    await banner.save();
+    const savedBanner = await banner.save();
+
+    console.log('[POST] Saved banner to database:', JSON.stringify(savedBanner, null, 2));
 
     return NextResponse.json({
       success: true,
       message: 'Banner created successfully',
-      data: banner
+      data: savedBanner
     }, { status: 201 });
 
   } catch (error: any) {
@@ -120,6 +157,8 @@ export async function PUT(request: NextRequest) {
     const formData = await request.formData();
     const bannerId = formData.get('id') as string;
 
+    console.log('[PUT] Update request for banner ID:', bannerId);
+
     if (!bannerId) {
       return NextResponse.json(
         { success: false, error: 'Banner ID is required for update' },
@@ -139,7 +178,19 @@ export async function PUT(request: NextRequest) {
     // Extract update data
     const title = formData.get('title') as string;
     const linkUrl = formData.get('linkUrl') as string;
+    const discountString = formData.get('discount') as string;
     const isActive = formData.get('isActive');
+
+    console.log('[PUT] Raw formData discount:', discountString, typeof discountString);
+    
+    // Parse discount with validation
+    let discount: number | undefined = undefined;
+    if (discountString && discountString.trim() !== '' && discountString !== 'null' && discountString !== 'undefined') {
+      const parsed = parseFloat(discountString);
+      discount = !isNaN(parsed) ? parsed : undefined;
+    }
+    
+    console.log('[PUT] Parsed discount for update:', discount, typeof discount);
 
     // Build update object
     const updateData: any = {
@@ -148,13 +199,17 @@ export async function PUT(request: NextRequest) {
 
     if (title) updateData.title = title;
     if (linkUrl) updateData.linkUrl = linkUrl;
+    if (discount !== undefined) updateData.discount = discount;
     if (isActive !== null) updateData.isActive = isActive === 'true';
+    
+    console.log('[PUT] Update data object:', JSON.stringify(updateData, null, 2));
 
     // Handle image update
     const imageFile = formData.get('image') as File;
     if (imageFile && imageFile.size > 0) {
       try {
         updateData.imageUrl = await uploadImage(imageFile);
+        console.log('[PUT] New image uploaded:', updateData.imageUrl);
       } catch (error: any) {
         console.error('Error uploading new banner image:', error);
         return NextResponse.json(
@@ -170,6 +225,8 @@ export async function PUT(request: NextRequest) {
       updateData,
       { new: true, runValidators: true }
     );
+
+    console.log('[PUT] Updated banner in database:', JSON.stringify(updatedBanner, null, 2));
 
     return NextResponse.json({
       success: true,
@@ -194,6 +251,8 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const bannerId = searchParams.get('id');
 
+    console.log('[DELETE] Delete request for banner ID:', bannerId);
+
     if (!bannerId) {
       return NextResponse.json(
         { success: false, error: 'Banner ID is required' },
@@ -209,6 +268,8 @@ export async function DELETE(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    console.log('[DELETE] Deleted banner:', JSON.stringify(deletedBanner, null, 2));
 
     return NextResponse.json({
       success: true,
