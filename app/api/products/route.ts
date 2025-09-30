@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import Product from "@/models/products";
 import uploadImage from "@/middleware/multerStorage";
+import { Product } from "@/models/products";
 
 // GET - Fetch products
 export async function GET(request: NextRequest) {

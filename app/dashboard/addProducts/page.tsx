@@ -204,6 +204,19 @@ export default function AddProductPage() {
               files={imageFiles}
             />
           </div>
+          <div>
+            <h4 className="text-md font-semibold text-gray-900 mb-3">Additional Images</h4>
+            <DragDropUpload
+              onFilesChange={handleImagesChange}
+              multiple={true}
+              accept="image/*"
+              maxSize={8}
+              maxFiles={5}
+              label="Upload Additional Images"
+              description="Drag and drop additional product images here, or click to select multiple files"
+              files={imageFiles}
+            />
+          </div>
         </div>
 
         <button

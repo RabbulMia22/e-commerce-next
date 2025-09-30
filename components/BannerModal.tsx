@@ -37,12 +37,20 @@ function BannerModal({
   onImageUpload, 
   isLoading 
 }: BannerModalProps) {
-  const { register, handleSubmit, reset, setValue, control, formState: { errors } } = useForm<IBannerForm>({
+  const { register, handleSubmit, reset, setValue, control, watch, formState: { errors } } = useForm<IBannerForm>({
     defaultValues: {
       isActive: true,
       startDate: new Date(),
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
     }
+  });
+
+  const watchedValues = watch();
+  console.log('[BannerModal] Form watched values:', {
+    startDate: watchedValues.startDate,
+    endDate: watchedValues.endDate,
+    startDateType: typeof watchedValues.startDate,
+    endDateType: typeof watchedValues.endDate
   });
 
   React.useEffect(() => {
@@ -63,6 +71,14 @@ function BannerModal({
   }, [editingBanner, setValue, reset]);
 
   const handleFormSubmit: SubmitHandler<IBannerForm> = (data) => {
+    console.log('[BannerModal] Form data being submitted:', data);
+    console.log('[BannerModal] startDate:', data.startDate, typeof data.startDate);
+    console.log('[BannerModal] endDate:', data.endDate, typeof data.endDate);
+    console.log('[BannerModal] startDate instanceof Date:', data.startDate instanceof Date);
+    console.log('[BannerModal] endDate instanceof Date:', data.endDate instanceof Date);
+    console.log('[BannerModal] startDate ISO:', data.startDate ? data.startDate.toISOString() : 'No startDate');
+    console.log('[BannerModal] endDate ISO:', data.endDate ? data.endDate.toISOString() : 'No endDate');
+    
     if (!bannerImage && !editingBanner) {
       alert('Please select a banner image');
       return;
@@ -100,7 +116,9 @@ function BannerModal({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-8 space-y-8">
+        <form onSubmit={handleSubmit(handleFormSubmit, (errors) => {
+          console.log('[BannerModal] Form validation errors:', errors);
+        })} className="p-8 space-y-8">
           {/* Banner Title */}
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-900">
@@ -207,7 +225,7 @@ function BannerModal({
                       onChange={(date) => field.onChange(date)}
                       showTimeSelect
                       timeFormat="HH:mm"
-                      timeIntervals={15}
+                      timeIntervals={5}
                       dateFormat="MMMM d, yyyy h:mm aa"
                       className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-gray-900 bg-gray-50 focus:bg-white"
                       placeholderText="Select start date and time"
@@ -247,7 +265,7 @@ function BannerModal({
                       onChange={(date) => field.onChange(date)}
                       showTimeSelect
                       timeFormat="HH:mm"
-                      timeIntervals={15}
+                      timeIntervals={1}
                       dateFormat="MMMM d, yyyy h:mm aa"
                       className="w-full px-4 py-4 border border-gray-300 rounded-2xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-gray-900 bg-gray-50 focus:bg-white"
                       placeholderText="Select end date and time"

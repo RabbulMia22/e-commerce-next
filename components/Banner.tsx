@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -19,7 +19,83 @@ interface IBanner {
   createdAt: string;
   updatedAt: string;
   discount?: number;
+  startDate?: string;
+  endDate?: string;
 }
+
+// Countdown Timer Component
+const CountdownTimer: React.FC<{ endDate?: string }> = ({ endDate }) => {
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!endDate) return;
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const targetDate = new Date(endDate).getTime();
+      const difference = targetDate - now;
+
+      if (difference > 0) {
+        return {
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000)
+        };
+      }
+      return null;
+    };
+
+    // Calculate initial time
+    setTimeLeft(calculateTimeLeft());
+
+    // Update every second
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [endDate]);
+
+  if (!endDate || !timeLeft) {
+    return (
+      <div className="hidden lg:block absolute bottom-4 right-4 xl:bottom-6 xl:right-6 bg-red-500/90 backdrop-blur-sm text-white px-2 py-1 xl:px-3 xl:py-2 rounded-full text-xs xl:text-sm font-bold animate-pulse">
+        <div className="flex items-center gap-1">
+          <span className="text-xs">🔥</span>
+          <span>Limited Time</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Format display to show days, minutes, and seconds together
+  const formatTime = () => {
+    const parts = [];
+    
+    if (timeLeft.days > 0) {
+      parts.push(`${timeLeft.days} day${timeLeft.days !== 1 ? 's' : ''}`);
+    }
+    
+    parts.push(`${timeLeft.minutes} minute${timeLeft.minutes !== 1 ? 's' : ''}`);
+    parts.push(`${timeLeft.seconds} second${timeLeft.seconds !== 1 ? 's' : ''}`);
+    
+    return parts.join(' ');
+  };
+
+  return (
+    <div className="hidden lg:block absolute bottom-4 right-4 xl:bottom-6 xl:right-6 bg-red-500/90 backdrop-blur-sm text-white px-2 py-1 xl:px-3 xl:py-2 rounded-lg text-xs xl:text-sm font-bold animate-pulse max-w-[200px] xl:max-w-[220px]">
+      <div className="flex items-center gap-1">
+        <span className="text-xs">⏰</span>
+        <span className="leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{formatTime()}</span>
+      </div>
+    </div>
+  );
+};
 
 function Banner() {
   const { data: banners = [], isLoading } = useQuery({
@@ -181,12 +257,10 @@ function Banner() {
                       )}
 
                       <div className="hidden lg:flex absolute top-4 left-4 xl:top-6 xl:left-6 w-10 h-10 xl:w-12 xl:h-12 bg-white/20 backdrop-blur-sm rounded-full items-center justify-center cursor-pointer hover:bg-white/30 transition-colors">
-                        <span className="text-white text-lg xl:text-xl"></span>
+                        <span className="text-white text-lg xl:text-xl">🔥</span>
                       </div>
 
-                      <div className="hidden lg:block absolute bottom-4 right-4 xl:bottom-6 xl:right-6 bg-red-500/90 backdrop-blur-sm text-white px-3 py-2 xl:px-4 xl:py-3 rounded-full text-sm xl:text-base font-bold animate-pulse">
-                         2h 45m
-                      </div>
+                      <CountdownTimer endDate={banner.endDate} />
                     </div>
                   </div>
                 </div>

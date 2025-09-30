@@ -3,26 +3,63 @@ import dbConnect from "@/lib/db";
 import { BannerOffer } from "@/models/bannerOffer";
 import uploadImage from "@/middleware/multerStorage";
 
-// GET - Fetch all banners
+// GET - Fetch all banners or filter by active status
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('active') === 'true';
+    const currentOnly = searchParams.get('current') === 'true';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
 
     // Build query
-    const query = activeOnly ? { isActive: true } : {};
+    let query: any = {};
     
-    const banners = await BannerOffer.find(query)
-      .sort({ createdAt: -1 });
+    if (activeOnly) {
+      query.isActive = true;
+    }
 
-    console.log('[GET] Fetched banners:', banners.length);
+    if (currentOnly) {
+      // Get banners that are currently active based on dates
+      const now = new Date();
+      query.isActive = true;
+      query.$or = [
+        // No date restrictions
+        { startDate: { $exists: false }, endDate: { $exists: false } },
+        // Within date range
+        {
+          $and: [
+            { $or: [{ startDate: { $exists: false } }, { startDate: { $lte: now } }] },
+            { $or: [{ endDate: { $exists: false } }, { endDate: { $gte: now } }] }
+          ]
+        }
+      ];
+    }
+    
+    // Execute query with pagination
+    const banners = await BannerOffer.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Get total count for pagination
+    const totalCount = await BannerOffer.countDocuments(query);
+    const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
       success: true,
       data: banners,
-      count: banners.length
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      }
     });
 
   } catch (error) {
@@ -38,40 +75,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await dbConnect();
-
     const formData = await request.formData();
-
-    // Debug: Log all FormData entries
-    console.log('[POST] FormData entries:');
-    for (const [key, value] of formData.entries()) {
-      console.log(`  ${key}:`, value, typeof value);
-    }
-    
-    // Check specifically for date fields
-    console.log('[POST] FormData has startDate:', formData.has('startDate'));
-    console.log('[POST] FormData has endDate:', formData.has('endDate'));
 
     // Extract banner data
     const title = formData.get('title') as string;
     const linkUrl = formData.get('linkUrl') as string;
     const discountString = formData.get('discount') as string;
     const isActive = formData.get('isActive') === 'true';
-    const startDate = formData.get('startDate') as string;
-    const endDate = formData.get('endDate') as string;
-
-    console.log('[POST] Raw formData startDate:', startDate, typeof startDate);
-    console.log('[POST] Raw formData endDate:', endDate, typeof endDate);
-    console.log('[POST] Raw formData discount:', discountString, typeof discountString);
-    
-    // Parse discount with validation
-    let discount: number | undefined = undefined;
-    
-    if (discountString && discountString.trim() !== '' && discountString !== 'null' && discountString !== 'undefined') {
-      const parsed = parseFloat(discountString);
-      discount = !isNaN(parsed) ? parsed : undefined;
-    }
-    
-    console.log('[POST] Parsed discount:', discount, typeof discount);
+    const startDateString = formData.get('startDate') as string;
+    const endDateString = formData.get('endDate') as string;
 
     // Validate required fields
     if (!title || !linkUrl) {
@@ -89,7 +101,7 @@ export async function POST(request: NextRequest) {
       try {
         imageUrl = await uploadImage(imageFile);
       } catch (error: any) {
-        console.error('Error uploading banner image:', error);
+        console.error('[POST] Error uploading banner image:', error);
         return NextResponse.json(
           { success: false, error: `Image upload failed: ${error.message}` },
           { status: 400 }
@@ -104,44 +116,54 @@ export async function POST(request: NextRequest) {
 
     // Create banner object
     const bannerData: any = {
-      title,
+      title: title.trim(),
       imageUrl,
-      linkUrl,
-      isActive: isActive !== undefined ? isActive : true,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      linkUrl: linkUrl.trim(),
+      isActive: isActive !== undefined ? isActive : true
     };
 
-    // Add dates only if they are valid
-    if (startDate && startDate.trim() !== '' && startDate !== 'null' && startDate !== 'undefined') {
-      bannerData.startDate = new Date(startDate);
-      console.log('[POST] Added startDate:', bannerData.startDate);
-    } else {
-      console.log('[POST] No valid startDate provided:', startDate);
+    // Parse and add discount if provided
+    if (discountString && discountString.trim() !== '' && discountString !== 'null' && discountString !== 'undefined') {
+      const discount = parseFloat(discountString);
+      if (!isNaN(discount) && discount >= 0 && discount <= 100) {
+        bannerData.discount = discount;
+      }
     }
 
-    if (endDate && endDate.trim() !== '' && endDate !== 'null' && endDate !== 'undefined') {
-      bannerData.endDate = new Date(endDate);
-      console.log('[POST] Added endDate:', bannerData.endDate);
-    } else {
-      console.log('[POST] No valid endDate provided:', endDate);
+    // Parse and add dates if provided
+    if (startDateString && startDateString.trim() !== '' && startDateString !== 'null' && startDateString !== 'undefined') {
+      try {
+        const startDate = new Date(startDateString);
+        if (!isNaN(startDate.getTime())) {
+          bannerData.startDate = startDate;
+        }
+      } catch (error) {
+        // Invalid date format - skip
+      }
     }
 
-    // Add discount if provided
-    if (discount !== undefined) {
-      bannerData.discount = discount;
-      console.log('[POST] Added discount to bannerData:', discount);
-    } else {
-      console.log('[POST] No discount to add - discount was undefined');
+    if (endDateString && endDateString.trim() !== '' && endDateString !== 'null' && endDateString !== 'undefined') {
+      try {
+        const endDate = new Date(endDateString);
+        if (!isNaN(endDate.getTime())) {
+          bannerData.endDate = endDate;
+        }
+      } catch (error) {
+        // Invalid date format - skip
+      }
     }
 
-    console.log('[POST] Banner data object:', JSON.stringify(bannerData, null, 2));
+    // Validate date logic
+    if (bannerData.startDate && bannerData.endDate && bannerData.startDate >= bannerData.endDate) {
+      return NextResponse.json(
+        { success: false, error: 'Start date must be before end date' },
+        { status: 400 }
+      );
+    }
 
     // Create and save banner
     const banner = new BannerOffer(bannerData);
     const savedBanner = await banner.save();
-
-    console.log('[POST] Saved banner to database:', JSON.stringify(savedBanner, null, 2));
 
     return NextResponse.json({
       success: true,
@@ -150,7 +172,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error: any) {
-    console.error('Error creating banner:', error);
+    console.error('[POST] Error creating banner:', error);
 
     // Handle validation errors
     if (error.name === 'ValidationError') {
@@ -176,8 +198,6 @@ export async function PUT(request: NextRequest) {
     const formData = await request.formData();
     const bannerId = formData.get('id') as string;
 
-    console.log('[PUT] Update request for banner ID:', bannerId);
-
     if (!bannerId) {
       return NextResponse.json(
         { success: false, error: 'Banner ID is required for update' },
@@ -194,60 +214,85 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+ 
+
     // Extract update data
     const title = formData.get('title') as string;
     const linkUrl = formData.get('linkUrl') as string;
     const discountString = formData.get('discount') as string;
-    const isActive = formData.get('isActive');
-    const startDate = formData.get('startDate') as string;
-    const endDate = formData.get('endDate') as string;
-
-    console.log('[PUT] Raw formData startDate:', startDate, typeof startDate);
-    console.log('[PUT] Raw formData endDate:', endDate, typeof endDate);
-    console.log('[PUT] Raw formData discount:', discountString, typeof discountString);
-    
-    // Parse discount with validation
-    let discount: number | undefined = undefined;
-    if (discountString && discountString.trim() !== '' && discountString !== 'null' && discountString !== 'undefined') {
-      const parsed = parseFloat(discountString);
-      discount = !isNaN(parsed) ? parsed : undefined;
-    }
-    
-    console.log('[PUT] Parsed discount for update:', discount, typeof discount);
+    const isActiveString = formData.get('isActive') as string;
+    const startDateString = formData.get('startDate') as string;
+    const endDateString = formData.get('endDate') as string;
 
     // Build update object
-    const updateData: any = {
-      updatedAt: new Date()
+    const updateData: any = {};
+
+    // Update basic fields if provided
+    if (title && title.trim()) {
+      updateData.title = title.trim();
+    }
+    
+    if (linkUrl && linkUrl.trim()) {
+      updateData.linkUrl = linkUrl.trim();
+    }
+
+    if (isActiveString !== null && isActiveString !== undefined) {
+      updateData.isActive = isActiveString === 'true';
     };
 
-    if (title) updateData.title = title;
-    if (linkUrl) updateData.linkUrl = linkUrl;
-    if (discount !== undefined) updateData.discount = discount;
-    if (isActive !== null) updateData.isActive = isActive === 'true';
-    if (startDate && startDate.trim() !== '' && startDate !== 'null' && startDate !== 'undefined') {
-      updateData.startDate = new Date(startDate);
-      console.log('[PUT] Added startDate to updateData:', updateData.startDate);
-    } else {
-      console.log('[PUT] No valid startDate provided for update:', startDate);
+    // Handle discount update
+    if (discountString !== null && discountString !== undefined) {
+      if (discountString === '' || discountString === 'null' || discountString === 'undefined') {
+        updateData.$unset = { discount: 1 };
+      } else {
+        const discount = parseFloat(discountString);
+        if (!isNaN(discount) && discount >= 0 && discount <= 100) {
+          updateData.discount = discount;
+        }
+      }
     }
-    
-    if (endDate && endDate.trim() !== '' && endDate !== 'null' && endDate !== 'undefined') {
-      updateData.endDate = new Date(endDate);
-      console.log('[PUT] Added endDate to updateData:', updateData.endDate);
-    } else {
-      console.log('[PUT] No valid endDate provided for update:', endDate);
-    }
-    
-    console.log('[PUT] Update data object:', JSON.stringify(updateData, null, 2));
 
-    // Handle image update
+    // Handle date updates
+    if (startDateString !== null && startDateString !== undefined) {
+      if (startDateString === '' || startDateString === 'null' || startDateString === 'undefined') {
+        if (!updateData.$unset) updateData.$unset = {};
+        updateData.$unset.startDate = 1;
+      } else {
+        try {
+          const startDate = new Date(startDateString);
+          if (!isNaN(startDate.getTime())) {
+            updateData.startDate = startDate;
+          }
+        } catch (error) {
+          // Invalid date format - skip
+        }
+      }
+    }
+
+    if (endDateString !== null && endDateString !== undefined) {
+      if (endDateString === '' || endDateString === 'null' || endDateString === 'undefined') {
+        if (!updateData.$unset) updateData.$unset = {};
+        updateData.$unset.endDate = 1;
+      } else {
+        try {
+          const endDate = new Date(endDateString);
+          if (!isNaN(endDate.getTime())) {
+            updateData.endDate = endDate;
+          }
+        } catch (error) {
+          // Invalid date format - skip
+        }
+      }
+    }
+
+    // Handle image upload if new image provided
     const imageFile = formData.get('image') as File;
     if (imageFile && imageFile.size > 0) {
       try {
-        updateData.imageUrl = await uploadImage(imageFile);
-        console.log('[PUT] New image uploaded:', updateData.imageUrl);
+        const newImageUrl = await uploadImage(imageFile);
+        updateData.imageUrl = newImageUrl;
       } catch (error: any) {
-        console.error('Error uploading new banner image:', error);
+        console.error('[PUT] Error uploading new image:', error);
         return NextResponse.json(
           { success: false, error: `Image upload failed: ${error.message}` },
           { status: 400 }
@@ -255,14 +300,33 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Update banner
+    // Validate date logic if both dates are being updated
+    const finalStartDate = updateData.startDate || existingBanner.startDate;
+    const finalEndDate = updateData.endDate || existingBanner.endDate;
+    
+    if (finalStartDate && finalEndDate && finalStartDate >= finalEndDate) {
+      return NextResponse.json(
+        { success: false, error: 'Start date must be before end date' },
+        { status: 400 }
+      );
+    }
+
+    // Always update the updatedAt field
+    updateData.updatedAt = new Date();
+
+    // Perform update
     const updatedBanner = await BannerOffer.findByIdAndUpdate(
       bannerId,
       updateData,
       { new: true, runValidators: true }
     );
 
-    console.log('[PUT] Updated banner in database:', JSON.stringify(updatedBanner, null, 2));
+    if (!updatedBanner) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to update banner' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -271,7 +335,17 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Error updating banner:', error);
+    console.error('[PUT] Error updating banner:', error);
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      return NextResponse.json(
+        { success: false, error: 'Validation failed', details: validationErrors },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { success: false, error: 'Failed to update banner' },
       { status: 500 }
@@ -287,25 +361,31 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const bannerId = searchParams.get('id');
 
-    console.log('[DELETE] Delete request for banner ID:', bannerId);
-
     if (!bannerId) {
       return NextResponse.json(
-        { success: false, error: 'Banner ID is required' },
+        { success: false, error: 'Banner ID is required for deletion' },
         { status: 400 }
       );
     }
 
-    const deletedBanner = await BannerOffer.findByIdAndDelete(bannerId);
-    
-    if (!deletedBanner) {
+    // Check if banner exists
+    const existingBanner = await BannerOffer.findById(bannerId);
+    if (!existingBanner) {
       return NextResponse.json(
         { success: false, error: 'Banner not found' },
         { status: 404 }
       );
     }
 
-    console.log('[DELETE] Deleted banner:', JSON.stringify(deletedBanner, null, 2));
+    // Delete the banner
+    const deletedBanner = await BannerOffer.findByIdAndDelete(bannerId);
+
+    if (!deletedBanner) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to delete banner' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -314,7 +394,7 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Error deleting banner:', error);
+    console.error('[DELETE] Error deleting banner:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete banner' },
       { status: 500 }
