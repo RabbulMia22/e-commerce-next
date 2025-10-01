@@ -1,5 +1,6 @@
 "use client";
 import { useHydratedStore } from "@/hooks/useHydratedStore";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import React, { useState } from "react";
 import { FaShoppingCart, FaUserCircle, FaHome, FaThLarge } from "react-icons/fa";
@@ -7,6 +8,9 @@ import { FaShoppingCart, FaUserCircle, FaHome, FaThLarge } from "react-icons/fa"
 function Navbar() {
     const [search, setSearch] = useState("");
     const { basket, hydrated } = useHydratedStore();
+    const { data: session } = useSession();
+    console.log("Session in Navbar:", session);
+    const [account, setAccount] = useState(false);
 
     // Calculate total items in basket only after hydration
     const totalItems = hydrated ? basket.reduce((total, item) => total + item.quantity, 0) : 0;
@@ -15,7 +19,7 @@ function Navbar() {
         <nav className="bg-white shadow-md sticky top-0 z-50">
             {/* Desktop */}
             <div className="hidden md:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 items-center justify-between">
-                
+
                 <Link href="/" className="flex-shrink-0 text-2xl font-bold text-white cursor-pointer bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 p-2 rounded-lg">
                     ShopMate
                 </Link>
@@ -47,9 +51,43 @@ function Navbar() {
 
                 {/* Account & Cart */}
                 <div className="flex items-center space-x-4">
-                    <Link href="/authentication/login">
-                        <FaUserCircle size={24} className="text-gray-700 hover:text-indigo-600 cursor-pointer" />
-                    </Link>
+                    <div className="relative inline-block text-left">
+                        {/* Icon */}
+                        <FaUserCircle
+                            size={28}
+                            onClick={() => setAccount(!account)}
+                            className="text-gray-700 hover:text-indigo-600 cursor-pointer transition-colors"
+                        />
+
+                        {/* Dropdown */}
+                        {account && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                <div className="py-2">
+                                    <p
+                                    onClick={() => setAccount(!account)}
+                                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
+                                        My Account
+                                    </p>
+                                    {session ? (
+                                        <p
+                                            onClick={() => signOut({ callbackUrl: "/" })}
+                                            className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                        >
+                                            Logout
+                                        </p>
+                                    ) : (
+                                        <Link
+                                            onClick={() => setAccount(!account)}
+                                            href="/authentication/login"
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                        >
+                                            Login
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     <Link href="/cart" className="relative cursor-pointer text-gray-700 hover:text-indigo-600">
                         <FaShoppingCart size={24} />
                         {totalItems > 0 && (

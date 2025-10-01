@@ -5,8 +5,8 @@ interface ProductDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function ProductDetailsPage({ params }: ProductDetailsPageProps) {
-  const { id } = React.use(params);
+export default async function ProductDetailsPage({ params }: ProductDetailsPageProps) {
+  const { id } = await params;
   return (
     <ProductDetails id={id} />
   );

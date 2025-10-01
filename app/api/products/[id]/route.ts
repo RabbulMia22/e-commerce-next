@@ -4,16 +4,25 @@ import { Product } from "@/models/products";
 import uploadImage from "@/middleware/multerStorage";
 
 // GET - Fetch single product by ID
+
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
-){
+  context: { params: Promise<{ id: string }> }
+) {
   try {
     await dbConnect();
-    const { id } = await params;
+
+    const { id } = await context.params;
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'Missing product ID' },
+        { status: 400 }
+      );
+    }
 
     // Validate MongoDB ObjectId format
-    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return NextResponse.json(
         { success: false, error: 'Invalid product ID format' },
         { status: 400 }
@@ -43,14 +52,15 @@ export async function GET(
   }
 }
 
+
 // PUT - Update single product
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
-    const { id } = await params;
+    const { id } = await context.params;
 
     // Validate MongoDB ObjectId format
     if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -190,11 +200,11 @@ export async function PUT(
 // DELETE - Delete single product
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     await dbConnect();
-    const { id } = await params;
+    const { id } = await context.params;
 
     // Validate MongoDB ObjectId format
     if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
