@@ -47,7 +47,9 @@ function Navbar() {
 
                 {/* Account & Cart */}
                 <div className="flex items-center space-x-4">
-                    <FaUserCircle size={24} className="text-gray-700 hover:text-indigo-600 cursor-pointer" />
+                    <Link href="/authentication/login">
+                        <FaUserCircle size={24} className="text-gray-700 hover:text-indigo-600 cursor-pointer" />
+                    </Link>
                     <Link href="/cart" className="relative cursor-pointer text-gray-700 hover:text-indigo-600">
                         <FaShoppingCart size={24} />
                         {totalItems > 0 && (

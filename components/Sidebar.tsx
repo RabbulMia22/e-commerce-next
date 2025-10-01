@@ -64,7 +64,9 @@ function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1">
-          <ul className="space-y-2">
+          <ul className="space-y-2"
+           onClick={() => setSidebarOpen(false)}
+          >
             {navItems.map((item) => (
               <li key={item.href}>
                 <Link
