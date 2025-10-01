@@ -148,7 +148,7 @@ function Banner() {
   }
 
   return (
-    <div className="w-full h-[300px] sm:h-[400px] lg:h-[500px] xl:h-[600px]">
+    <div className="w-full h-[300px] sm:h-[400px] lg:h-[500px] ">
       <Swiper
         pagination={{ dynamicBullets: true, clickable: true }}
         modules={[Pagination, Autoplay]}
