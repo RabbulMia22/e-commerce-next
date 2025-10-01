@@ -1,19 +1,24 @@
 "use client";
+import { useHydratedStore } from "@/hooks/useHydratedStore";
 import Link from "next/link";
 import React, { useState } from "react";
 import { FaShoppingCart, FaUserCircle, FaHome, FaThLarge } from "react-icons/fa";
 
 function Navbar() {
     const [search, setSearch] = useState("");
+    const { basket, hydrated } = useHydratedStore();
+
+    // Calculate total items in basket only after hydration
+    const totalItems = hydrated ? basket.reduce((total, item) => total + item.quantity, 0) : 0;
 
     return (
         <nav className="bg-white shadow-md sticky top-0 z-50">
             {/* Desktop */}
             <div className="hidden md:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 items-center justify-between">
-                {/* Logo */}
-                <div className="flex-shrink-0 text-2xl font-bold text-white cursor-pointer bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 p-2 rounded-lg">
+                
+                <Link href="/" className="flex-shrink-0 text-2xl font-bold text-white cursor-pointer bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 p-2 rounded-lg">
                     ShopMate
-                </div>
+                </Link>
 
                 {/* Search */}
                 <div className="flex flex-1 max-w-xl mx-6">
@@ -43,10 +48,14 @@ function Navbar() {
                 {/* Account & Cart */}
                 <div className="flex items-center space-x-4">
                     <FaUserCircle size={24} className="text-gray-700 hover:text-indigo-600 cursor-pointer" />
-                    <div className="relative cursor-pointer text-gray-700 hover:text-indigo-600">
+                    <Link href="/cart" className="relative cursor-pointer text-gray-700 hover:text-indigo-600">
                         <FaShoppingCart size={24} />
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">3</span>
-                    </div>
+                        {totalItems > 0 && (
+                            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+                                {totalItems > 99 ? '99+' : totalItems}
+                            </span>
+                        )}
+                    </Link>
                 </div>
             </div>
 

@@ -3,6 +3,8 @@ import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
 import Link from 'next/link'
+import useBasketStore from '@/store/store'
+import { toast } from 'react-hot-toast' 
 
 interface IProduct {
   _id: string;
@@ -33,6 +35,11 @@ interface ProductDetailsProps {
 export default function ProductDetails({ id }: ProductDetailsProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [selectedSize, setSelectedSize] = useState('') 
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+
+  // Get cart functions from Zustand store
+  const { addToBasket, getItemCount } = useBasketStore()
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['product', id],
@@ -58,6 +65,65 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
       setQuantity(value)
     }
   }
+
+  // Add to cart handler with size validation
+  const handleAddToCart = async () => {
+    if (!data?.data) return
+
+    // Check if size is selected
+    if (!selectedSize) {
+      toast.error('Please select a size before adding to cart', {
+        duration: 3000,
+        position: 'top-right',
+        style: {
+          background: '#EF4444',
+          color: 'white',
+        },
+        icon: '⚠️',
+      })
+      return
+    }
+
+    setIsAddingToCart(true)
+    
+    try {
+      const product = data.data
+      
+      // Add items to cart one by one (since your store adds 1 at a time)
+      for (let i = 0; i < quantity; i++) {
+        addToBasket(product, selectedSize)
+      }
+
+      // Show success message
+      toast.success(`Added ${quantity} ${product.title} (Size: ${selectedSize}) to cart!`, {
+        duration: 3000,
+        position: 'top-right',
+        style: {
+          background: '#10B981',
+          color: 'white',
+        },
+        icon: '🛒',
+      })
+
+      // Reset quantity to 1 after adding
+      setQuantity(1)
+
+    } catch (error) {
+      toast.error('Failed to add item to cart', {
+        duration: 3000,
+        position: 'top-right',
+        style: {
+          background: '#EF4444',
+          color: 'white',
+        },
+      })
+    } finally {
+      setIsAddingToCart(false)
+    }
+  }
+
+  // Get current item count in cart for this product and size
+  const currentItemCount = data?.data ? getItemCount(data.data._id, selectedSize) : 0
 
   if (isLoading) {
     return (
@@ -116,12 +182,17 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
   const product: IProduct = data.data
   const totalPrice = product.price * quantity
+  
+  // Available sizes (you can customize this based on your product data)
+  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
   return (
     <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 lg:p-8">
       {/* Breadcrumb */}
       <nav className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 lg:mb-8 px-1">
         <Link href="/" className="hover:text-orange-600 transition-colors">Home</Link>
+        <span>/</span>
+        <Link href="/products" className="hover:text-orange-600 transition-colors">Products</Link>
         <span>/</span>
         <span className="text-gray-900 font-medium truncate">{product.title}</span>
       </nav>
@@ -143,7 +214,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
               <div className="w-full h-full flex items-center justify-center bg-gray-100">
                 <div className="text-center p-4">
                   <svg className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-2 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <p className="text-gray-500 text-sm">No image available</p>
                 </div>
@@ -222,6 +293,37 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
             </span>
           </div>
 
+          {/* Size Selector */}
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">Size</h3>
+              <span className="text-red-500 text-sm">*</span>
+              {!selectedSize && (
+                <span className="text-red-500 text-xs sm:text-sm">(Please select a size)</span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {availableSizes.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg border transition-all ${
+                    selectedSize === size
+                      ? 'bg-orange-500 text-white border-orange-500 shadow-md transform scale-105'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-orange-300 hover:text-orange-600 hover:shadow-sm'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+            {selectedSize && currentItemCount > 0 && (
+              <p className="text-sm text-blue-600 bg-blue-50 p-2 rounded-lg border border-blue-200">
+                💡 {currentItemCount} item(s) of size {selectedSize} already in cart
+              </p>
+            )}
+          </div>
+
           {/* Quantity Selector */}
           {product.stock > 0 && (
             <div className="space-y-2 sm:space-y-3">
@@ -298,12 +400,6 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
             )}
           </div>
 
-          {/* Description */}
-          <div className="space-y-2 sm:space-y-3">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900">Description</h3>
-            <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{product.description}</p>
-          </div>
-
           {/* Product Details */}
           <div className="bg-gray-50 rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
             <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Product Details</h4>
@@ -329,7 +425,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4 sm:pt-6">
-            <Link href="/" className="w-full sm:w-auto">
+            <Link href="/products" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -339,30 +435,56 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
             </Link>
 
             <button 
-              disabled={product.stock === 0}
+              onClick={handleAddToCart}
+              disabled={product.stock === 0 || isAddingToCart || !selectedSize}
               className={`flex-1 px-4 py-2 sm:px-8 sm:py-3 font-medium rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base ${
                 product.stock === 0 
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : !selectedSize
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : isAddingToCart
+                  ? 'bg-orange-400 text-white cursor-wait'
                   : 'bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white hover:scale-105'
               }`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5.5M7 13h10M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
-              </svg>
-              <span className="hidden sm:inline">
-                {product.stock === 0 ? 'Out of Stock' : `Add ${quantity} to Cart`}
-              </span>
-              <span className="sm:hidden">
-                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-              </span>
+              {isAddingToCart ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Adding...</span>
+                </div>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5.5M7 13h10M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
+                  </svg>
+                  <span className="hidden sm:inline">
+                    {product.stock === 0 
+                      ? 'Out of Stock' 
+                      : !selectedSize 
+                      ? 'Select Size First' 
+                      : `Add ${quantity} to Cart`
+                    }
+                  </span>
+                  <span className="sm:hidden">
+                    {product.stock === 0 
+                      ? 'Out of Stock' 
+                      : !selectedSize 
+                      ? 'Select Size' 
+                      : 'Add to Cart'
+                    }
+                  </span>
+                </>
+              )}
             </button>
 
-            <button className="w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-500 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              Wishlist
-            </button>
+            <Link href="/cart" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm sm:text-base">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5.5M7 13h10M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
+                </svg>
+                View Cart
+              </button>
+            </Link>
           </div>
         </div>
       </div>
