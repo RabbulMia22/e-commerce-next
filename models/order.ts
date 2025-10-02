@@ -14,21 +14,31 @@ interface IOrderItem {
 // Shipping Address Interface
 interface IShippingAddress {
   fullName: string;
+  phone: string;
   address: string;
-  city: string;
-  state: string;
-  zipCode: string;
+  area: string;
+  district: string;
+  division: string;
+  postalCode?: string;
   country: string;
-  phone?: string;
+  addressType: 'home' | 'office';
+  landmark?: string;
+  deliveryZone: 'inside_dhaka' | 'outside_dhaka';
+  deliveryType: 'standard' | 'express';
 }
 
 // Payment Info Interface
 interface IPaymentInfo {
-  method: 'credit_card' | 'paypal' | 'stripe' | 'cash_on_delivery';
-  transactionId?: string;
+  method: 'sslcommerz' | 'cash_on_delivery';
+  sslTransactionId?: string;
+  sslSessionId?: string;
+  bankTransactionId?: string;
+  cardType?: string;
+  paymentGateway?: string;
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
   paidAt?: Date;
   amount: number;
+  currency: string;
 }
 
 // Order Interface
@@ -51,6 +61,9 @@ interface IOrder extends Document {
   deliveredAt?: Date;
   cancelledAt?: Date;
   cancelReason?: string;
+  deliveryType: 'standard' | 'express';
+  deliveryZone: 'inside_dhaka' | 'outside_dhaka';
+  courierService?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -98,35 +111,61 @@ const ShippingAddressSchema = new Schema<IShippingAddress>({
     required: true,
     trim: true
   },
+  phone: {
+    type: String,
+    required: true,
+    trim: true
+  },
   address: {
     type: String,
     required: true,
     trim: true
   },
-  city: {
+  area: {
     type: String,
     required: true,
     trim: true
   },
-  state: {
+  district: {
     type: String,
     required: true,
     trim: true
   },
-  zipCode: {
+  division: {
     type: String,
     required: true,
+    trim: true
+  },
+  postalCode: {
+    type: String,
     trim: true
   },
   country: {
     type: String,
     required: true,
     trim: true,
-    default: 'United States'
+    default: 'Bangladesh'
   },
-  phone: {
+  addressType: {
+    type: String,
+    enum: ['home', 'office'],
+    required: true,
+    default: 'home'
+  },
+  landmark: {
     type: String,
     trim: true
+  },
+  deliveryZone: {
+    type: String,
+    enum: ['inside_dhaka', 'outside_dhaka'],
+    required: true
+  },
+  deliveryType: {
+    type: String,
+    enum: ['standard', 'express'],
+    required: true,
+    default: 'standard'
   }
 });
 
@@ -134,10 +173,26 @@ const ShippingAddressSchema = new Schema<IShippingAddress>({
 const PaymentInfoSchema = new Schema<IPaymentInfo>({
   method: {
     type: String,
-    enum: ['credit_card', 'paypal', 'stripe', 'cash_on_delivery'],
+    enum: ['sslcommerz', 'cash_on_delivery'],
     required: true
   },
-  transactionId: {
+  sslTransactionId: {
+    type: String,
+    trim: true
+  },
+  sslSessionId: {
+    type: String,
+    trim: true
+  },
+  bankTransactionId: {
+    type: String,
+    trim: true
+  },
+  cardType: {
+    type: String,
+    trim: true
+  },
+  paymentGateway: {
     type: String,
     trim: true
   },
@@ -153,6 +208,11 @@ const PaymentInfoSchema = new Schema<IPaymentInfo>({
     type: Number,
     required: true,
     min: 0
+  },
+  currency: {
+    type: String,
+    required: true,
+    default: 'BDT'
   }
 });
 
@@ -241,6 +301,21 @@ const OrderSchema = new Schema<IOrder>({
     type: String,
     trim: true,
     maxlength: 200
+  },
+  deliveryType: {
+    type: String,
+    enum: ['standard', 'express'],
+    required: true,
+    default: 'standard'
+  },
+  deliveryZone: {
+    type: String,
+    enum: ['inside_dhaka', 'outside_dhaka'],
+    required: true
+  },
+  courierService: {
+    type: String,
+    trim: true
   }
 }, {
   timestamps: true

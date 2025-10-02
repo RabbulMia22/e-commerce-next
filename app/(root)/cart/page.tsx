@@ -44,6 +44,8 @@ function CartPage() {
   const handlePayment = () => {
     if (!session) {
       signIn(undefined, { callbackUrl: '/cart' });
+    } else {
+      router.push('/payemt-checkout');
     }
   };
 

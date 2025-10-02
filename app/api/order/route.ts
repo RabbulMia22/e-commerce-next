@@ -7,12 +7,6 @@ import { Product } from '@/models/products';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-
     await dbConnect();
 
     const body = await req.json();
@@ -25,8 +19,25 @@ export async function POST(req: NextRequest) {
       tax, 
       discount = 0, 
       totalAmount,
-      notes 
+      notes,
+      user: providedUser,
+      isSSLPayment = false
     } = body;
+
+    // Authentication: either session or SSL payment with user info
+    let user;
+    if (isSSLPayment && providedUser) {
+      // SSL payment callback - use provided user info
+      user = { id: providedUser.id, email: providedUser.email };
+      console.log("🔄 SSL Payment order - using provided user:", user.email);
+    } else {
+      // Regular order - require session
+      const session = await getServerSession(authOptions);
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      }
+      user = session.user;
+    }
 
     // Validate required fields
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -71,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 🔧 FIX: Use the correct user ID property
-    const userId = (session.user as any).id || session.user.email;
+    const userId = (user as any).id || user.email;
 
     // Create the order
     const newOrder = new Order({
