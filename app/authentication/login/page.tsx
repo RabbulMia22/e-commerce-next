@@ -11,7 +11,8 @@ import {
   ArrowLeft, 
   Loader2,
   Chrome,
-  Facebook
+  Facebook,
+  AlertCircle
 } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -24,7 +25,9 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [acceptTerms, setAcceptTerms] = useState(false)
   const [error, setError] = useState('')
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({})
   const router = useRouter()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,10 +37,42 @@ function LoginPage() {
       [name]: value
     }))
     if (error) setError('')
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }))
+    }
+  }
+
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {}
+    
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required'
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Please enter a valid email'
+    }
+    
+    if (!formData.password) {
+      errors.password = 'Password is required'
+    }
+    
+    if (!acceptTerms) {
+      errors.terms = 'You must accept the terms and conditions to continue'
+    }
+    
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
+    
     setIsLoading(true)
     setError('')
 
@@ -61,6 +96,11 @@ function LoginPage() {
   }
 
   const handleGoogle = async () => {
+    if (!acceptTerms) {
+      setValidationErrors({ terms: 'You must accept the terms and conditions to continue' })
+      return
+    }
+    
     setIsLoading(true)
     setError('')
     try {
@@ -86,10 +126,12 @@ function LoginPage() {
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-              {error}
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+              <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0" />
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div>
@@ -106,11 +148,16 @@ function LoginPage() {
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  required
-                  className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors bg-gray-50 focus:bg-white"
+                  disabled={isLoading}
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors bg-gray-50 focus:bg-white text-black disabled:opacity-50 ${
+                    validationErrors.email ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your email"
                 />
               </div>
+              {validationErrors.email && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
+              )}
             </div>
 
             {/* Password Field */}
@@ -128,14 +175,17 @@ function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handleInputChange}
-                  required
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors bg-gray-50 focus:bg-white"
+                  disabled={isLoading}
+                  className={`block w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors bg-gray-50 focus:bg-white text-black disabled:opacity-50 ${
+                    validationErrors.password ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 transition-colors"
+                  disabled={isLoading}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600 transition-colors disabled:opacity-50"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400" />
@@ -144,6 +194,51 @@ function LoginPage() {
                   )}
                 </button>
               </div>
+              {validationErrors.password && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.password}</p>
+              )}
+            </div>
+
+            {/* Terms and Conditions */}
+            <div>
+              <div className="flex items-start">
+                <div className="flex items-center h-5">
+                  <input
+                    id="accept-terms"
+                    name="accept-terms"
+                    type="checkbox"
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    disabled={isLoading}
+                    className={`h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded disabled:opacity-50 ${
+                      validationErrors.terms ? 'border-red-300' : ''
+                    }`}
+                  />
+                </div>
+                <div className="ml-3 text-sm">
+                  <label htmlFor="accept-terms" className="text-gray-700">
+                    I agree to the{' '}
+                    <Link 
+                      href="/terms" 
+                      className="font-medium text-orange-600 hover:text-orange-500 underline"
+                      target="_blank"
+                    >
+                      Terms and Conditions
+                    </Link>{' '}
+                    and{' '}
+                    <Link 
+                      href="/privacy" 
+                      className="font-medium text-orange-600 hover:text-orange-500 underline"
+                      target="_blank"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+              </div>
+              {validationErrors.terms && (
+                <p className="mt-1 text-sm text-red-600">{validationErrors.terms}</p>
+              )}
             </div>
 
             {/* Remember Me & Forgot Password */}
@@ -155,7 +250,8 @@ function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded"
+                  disabled={isLoading}
+                  className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded disabled:opacity-50"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                   Remember me
@@ -203,16 +299,30 @@ function LoginPage() {
 
             {/* Social Login Buttons */}
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <button onClick={handleGoogle} disabled={isLoading} className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50">
+              <button 
+                onClick={handleGoogle} 
+                disabled={isLoading}
+                className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Chrome className="w-5 h-5 text-blue-500" />
                 <span className="ml-2">Google</span>
               </button>
 
-              <button disabled className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 opacity-60 cursor-not-allowed">
+              <button 
+                disabled 
+                className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 opacity-60 cursor-not-allowed"
+              >
                 <Facebook className="w-5 h-5 text-blue-600" />
                 <span className="ml-2">Facebook</span>
               </button>
             </div>
+
+            {/* Terms reminder for social login */}
+            {!acceptTerms && (
+              <p className="mt-3 text-xs text-gray-500 text-center">
+                By signing in with Google or Facebook, you agree to our Terms and Privacy Policy.
+              </p>
+            )}
           </div>
         </div>
 

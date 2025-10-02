@@ -1,7 +1,7 @@
 import DashboardHome from '@/components/DashboardHome'
 import React from 'react'
 
-function page() {
+function AdminDashboardPage() {
   return (
     <div>
       <DashboardHome />
@@ -9,4 +9,4 @@ function page() {
   )
 }
 
-export default page
+export default AdminDashboardPage;

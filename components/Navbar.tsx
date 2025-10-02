@@ -1,4 +1,5 @@
 "use client";
+import useAdmin from "@/hooks/useAdmin";
 import { useHydratedStore } from "@/hooks/useHydratedStore";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
@@ -9,8 +10,18 @@ function Navbar() {
     const [search, setSearch] = useState("");
     const { basket, hydrated } = useHydratedStore();
     const { data: session } = useSession();
-    console.log("Session in Navbar:", session);
     const [account, setAccount] = useState(false);
+    const { loading, isAdmin } = useAdmin();
+    console.log("Admin Status:", isAdmin);
+    console.log("Session Data:", session);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-16 bg-white shadow-md">
+                <p className="text-gray-500">Loading...</p>
+            </div>
+        );
+    }
 
     // Calculate total items in basket only after hydration
     const totalItems = hydrated ? basket.reduce((total, item) => total + item.quantity, 0) : 0;
@@ -46,7 +57,18 @@ function Navbar() {
                     <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">Home</a>
                     <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">Shop</a>
                     <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">Deals</a>
-                    <Link href="/dashboard" className="text-gray-700 hover:text-indigo-600 font-medium">Dashboard</Link>
+                    {
+                        isAdmin ? (
+                            <Link href="/dashboard" className="text-gray-700 hover:text-indigo-600 font-medium">
+                                Dashboard
+                            </Link>
+                        ) : (
+                            <Link href="/myorders" className="text-gray-700 hover:text-indigo-600 font-medium">
+                                My Orders
+                            </Link>
+                        )
+                    }
+
                 </div>
 
                 {/* Account & Cart */}
@@ -64,8 +86,8 @@ function Navbar() {
                             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                                 <div className="py-2">
                                     <p
-                                    onClick={() => setAccount(!account)}
-                                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
+                                        onClick={() => setAccount(!account)}
+                                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
                                         My Account
                                     </p>
                                     {session ? (

@@ -1,88 +1,71 @@
-import dbConnect from "@/lib/db";
-import User from "@/models/user";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '@/lib/db';
+import User from '@/models/user';
 
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || "supersecret";
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    // 1️⃣ Parse request body safely
-    let body: any;
-    try {
-      body = await req.json();
-    } catch (err) {
-      return new Response(JSON.stringify({ error: "Invalid JSON in request body" }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const { firstName, lastName, email, password, phone } = await req.json();
+
+    // Validate required fields
+    if (!firstName || !lastName || !email || !password) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
-    const { firstName, lastName, email, phone, password, confirmPassword } = body;
-
-    // 2️⃣ Validate input
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      return new Response(JSON.stringify({ error: "All required fields must be filled" }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    if (password !== confirmPassword) {
-      return new Response(JSON.stringify({ error: "Passwords do not match" }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-
-    // 3️⃣ Connect to DB
     await dbConnect();
 
-    // 4️⃣ Check if user already exists
-    const existingUser = await User.findOne({ email });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return new Response(JSON.stringify({ error: "Email already in use" }), { status: 409, headers: { 'Content-Type': 'application/json' } });
+      return NextResponse.json(
+        { error: 'User already exists with this email' },
+        { status: 409 }
+      );
     }
 
-    // 5️⃣ Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 6️⃣ Merge first + last name
-    const fullName = `${firstName} ${lastName}`.trim();
-
-    // 7️⃣ Create new user
-    const newUser = await User.create({
-      name: fullName,
-      email,
-      phone: phone || "",
-      password: hashedPassword,
-      role: "user",
+    // ✅ Create user with the correct schema fields
+    const newUser = new User({
+      name: `${firstName.trim()} ${lastName.trim()}`, // Combine into single name field
+      email: email.toLowerCase().trim(),
+      phone: phone?.trim() || undefined,
+      password: password, 
+      role: 'user',
     });
 
-    // 8️⃣ Create JWT token
-    const token = jwt.sign(
-      {
-        id: newUser._id.toString(),
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
+    await newUser.save();
+
+    // Return user without password
+    const userResponse = {
+      id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      phone: newUser.phone,
+      role: newUser.role,
+    };
+
+    return NextResponse.json(
+      { 
+        message: 'User created successfully', 
+        user: userResponse 
       },
-      JWT_SECRET,
-      { expiresIn: "30d" }
+      { status: 201 }
     );
 
-    // 9️⃣ Set HttpOnly cookie
-    const res = new Response(
-      JSON.stringify({ message: "User registered successfully", user: { id: newUser._id, name: newUser.name, email: newUser.email, role: newUser.role } }),
-      { status: 201, headers: { 'Content-Type': 'application/json' } }
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { error: 'Email already exists' },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
     );
-
-    res.headers.append(
-      "Set-Cookie",
-      `token=${token}; HttpOnly; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Strict; Secure`
-    );
-
-    return res;
-
-  } catch (err: any) {
-    console.error("Registration error:", err);
-    return new Response(JSON.stringify({ error: err.message || "Server error" }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 }
