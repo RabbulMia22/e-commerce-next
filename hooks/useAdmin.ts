@@ -27,7 +27,6 @@ export default function useAdmin(): AdminHookReturn {
 
     if (session.user?.role !== "admin") {
       setError("Access denied - Admin privileges required");
-      router.push("/");
       return;
     }
 

@@ -95,6 +95,9 @@ export const authOptions: NextAuthOptions = {
 
     // ✅ JWT callback that matches your schema
     async jwt({ token, user }) {
+       if (user) {
+        token.id = user.id;
+      }
       const t = token as any;
 
       // If user just signed in, set initial token data

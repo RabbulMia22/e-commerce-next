@@ -15,7 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 function LoginPage() {
   const [formData, setFormData] = useState({
@@ -29,6 +29,8 @@ function LoginPage() {
   const [error, setError] = useState('')
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({})
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -84,7 +86,7 @@ function LoginPage() {
       })
 
       if (result?.ok) {
-        router.push('/')
+        router.push(callbackUrl)
       } else {
         setError(result?.error || 'Invalid email or password')
       }
@@ -104,7 +106,7 @@ function LoginPage() {
     setIsLoading(true)
     setError('')
     try {
-      await signIn('google', { callbackUrl: '/' })
+      await signIn('google', { callbackUrl })
     } catch (err) {
       setIsLoading(false)
       setError('Google sign-in failed. Please try again.')

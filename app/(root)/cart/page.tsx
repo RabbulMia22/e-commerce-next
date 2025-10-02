@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import useBasketStore from '@/store/store';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, CreditCard } from 'lucide-react';
+import { useSession, signIn } from 'next-auth/react';
+import { useRouter } from "next/navigation";
 
 function CartPage() {
   const {
@@ -20,14 +22,18 @@ function CartPage() {
   // Calculate totals using useMemo to prevent recalculation
   const { itemCount, totalPrice, subtotal, shipping, tax, total } = useMemo(() => {
     const totalPrice = getTotalPrice();
+
     const itemCount = items.reduce((total, item) => total + item.quantity, 0);
     const subtotal = totalPrice;
     const shipping = subtotal > 50 ? 0 : 9.99;
     const tax = subtotal * 0.08; // 8% tax
     const total = subtotal + shipping + tax;
-    
+
     return { itemCount, totalPrice, subtotal, shipping, tax, total };
   }, [items, getTotalPrice]);
+
+  const { data: session } = useSession();
+  const router = useRouter();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -35,9 +41,14 @@ function CartPage() {
       currency: 'USD'
     }).format(price);
   };
+  const handlePayment = () => {
+    if (!session) {
+      signIn(undefined, { callbackUrl: '/cart' });
+    }
+  };
 
   const handleQuantityIncrease = (productId: string, selectedSize: string) => {
-    const item = items.find(item => 
+    const item = items.find(item =>
       item.product._id === productId && item.selectedSize === selectedSize
     );
     if (item) {
@@ -65,7 +76,7 @@ function CartPage() {
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
               Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
             </p>
-            <Link 
+            <Link
               href="/"
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
@@ -87,7 +98,7 @@ function CartPage() {
             <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
             <p className="text-gray-600 mt-1">{itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart</p>
           </div>
-          <Link 
+          <Link
             href="/products"
             className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
           >
@@ -134,7 +145,7 @@ function CartPage() {
                         <div className="flex items-start justify-between">
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                              <Link 
+                              <Link
                                 href={`/products/${item.product._id}`}
                                 className="hover:text-blue-600 transition-colors"
                               >
@@ -211,7 +222,7 @@ function CartPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
-              
+
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal ({itemCount} items)</span>
@@ -245,7 +256,9 @@ function CartPage() {
                 </div>
               </div>
 
-              <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center mb-3">
+              <button
+                onClick={handlePayment}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center mb-3">
                 <CreditCard className="w-4 h-4 mr-2" />
                 Proceed to Checkout
               </button>
