@@ -12,6 +12,8 @@ export interface Product {
     images: string[];
     stock: number;
     rating: number;
+    hasSize?: boolean;
+    availableSizes?: string[];
     createdAt: string;
     updatedAt: string;
 }

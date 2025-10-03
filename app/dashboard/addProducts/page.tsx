@@ -13,16 +13,23 @@ interface IFormInputs {
   category: string;
   brand?: string;
   stock: number;
+  hasSize: boolean;
+  availableSizes: string[];
 }
 
 export default function AddProductPage() {
   const queryClient = useQueryClient();
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [hasSize, setHasSize] = useState<boolean>(false);
+  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
+  const [customSize, setCustomSize] = useState<string>('');
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<IFormInputs>({
     defaultValues: {
-      stock: 0
+      stock: 0,
+      hasSize: false,
+      availableSizes: []
     },
     mode: 'onChange'
   });
@@ -31,12 +38,22 @@ export default function AddProductPage() {
     mutationFn: async (data: IFormInputs) => {
       const formData = new FormData();
       
-      // Append form fields
+      // Append form fields (excluding arrays which need special handling)
       Object.entries(data).forEach(([key, value]) => {
+        if (key === 'availableSizes') {
+          // Handle array field separately
+          return;
+        }
         if (value !== undefined && value !== null) {
           formData.append(key, value.toString());
         }
       });
+
+      // Add size fields
+      formData.append('hasSize', hasSize.toString());
+      if (hasSize && availableSizes.length > 0) {
+        formData.append('availableSizes', JSON.stringify(availableSizes));
+      }
 
       // Append thumbnail file
       if (thumbnailFile) {
@@ -97,6 +114,8 @@ export default function AddProductPage() {
   const onSubmit: SubmitHandler<IFormInputs> = (data) => {
     console.log('\n=== FORM SUBMISSION ===');
     console.log('Form data:', data);
+    console.log('Has size:', hasSize);
+    console.log('Available sizes:', availableSizes);
     console.log('Thumbnail file:', thumbnailFile?.name || 'None');
     console.log('Additional images count:', imageFiles.length);
     console.log('Additional images:', imageFiles.map(f => f.name));
@@ -108,7 +127,46 @@ export default function AddProductPage() {
       return;
     }
 
-    mutation.mutate(data);
+    if (hasSize && availableSizes.length === 0) {
+      alert('Please add at least one size for this product');
+      return;
+    }
+
+    const formData = {
+      ...data,
+      hasSize,
+      availableSizes
+    };
+
+    mutation.mutate(formData);
+  };
+
+  // Size management functions
+  const addSize = () => {
+    if (customSize.trim() && !availableSizes.includes(customSize.trim())) {
+      setAvailableSizes([...availableSizes, customSize.trim()]);
+      setCustomSize('');
+    }
+  };
+
+  const removeSize = (sizeToRemove: string) => {
+    setAvailableSizes(availableSizes.filter(size => size !== sizeToRemove));
+  };
+
+  const addPredefinedSize = (size: string) => {
+    if (!availableSizes.includes(size)) {
+      setAvailableSizes([...availableSizes, size]);
+    }
+  };
+
+  // Reset function to clear all form data
+  const resetForm = () => {
+    reset();
+    setThumbnailFile(null);
+    setImageFiles([]);
+    setHasSize(false);
+    setAvailableSizes([]);
+    setCustomSize('');
   };
 
   const handleThumbnailChange = (files: File[]) => {
@@ -215,6 +273,96 @@ export default function AddProductPage() {
             className="border border-gray-300 p-3 w-full rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black placeholder:text-gray-500"
             placeholder="Brand name (optional, defaults to 'Generic')"
           />
+        </div>
+
+        {/* Size Configuration */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="hasSize"
+              checked={hasSize}
+              onChange={(e) => {
+                setHasSize(e.target.checked);
+                if (!e.target.checked) {
+                  setAvailableSizes([]);
+                  setCustomSize('');
+                }
+              }}
+              className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="hasSize" className="font-semibold text-black">
+              This product has sizes (clothing, shoes, etc.)
+            </label>
+          </div>
+
+          {hasSize && (
+            <div className="pl-8 space-y-4 border-l-4 border-blue-500 bg-blue-50 p-4 rounded-lg">
+              <div>
+                <label className="block font-medium mb-2 text-black">Quick Size Selection</label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL'].map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => addPredefinedSize(size)}
+                      disabled={availableSizes.includes(size)}
+                      className={`px-3 py-1 text-sm rounded-lg border transition-all ${
+                        availableSizes.includes(size)
+                          ? 'bg-green-500 text-white border-green-500 cursor-not-allowed'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                      }`}
+                    >
+                      {size} {availableSizes.includes(size) && '✓'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-medium mb-2 text-black">Add Custom Size</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customSize}
+                    onChange={(e) => setCustomSize(e.target.value)}
+                    placeholder="Enter custom size (e.g., 30, 32, UK 8, EU 42)"
+                    className="flex-1 border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black placeholder:text-gray-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addSize}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {availableSizes.length > 0 && (
+                <div>
+                  <label className="block font-medium mb-2 text-black">Selected Sizes</label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableSizes.map((size) => (
+                      <span
+                        key={size}
+                        className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                      >
+                        {size}
+                        <button
+                          type="button"
+                          onClick={() => removeSize(size)}
+                          className="ml-2 text-blue-600 hover:text-blue-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Images */}

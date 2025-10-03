@@ -11,6 +11,8 @@ export interface IProduct extends Document {
   rating: number;
   averageRating: number;
   totalReviews: number;
+  hasSize: boolean;
+  availableSizes: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +28,8 @@ const ProductSchema: Schema<IProduct> = new Schema({
   rating: { type: Number, default: 0, min: 0, max: 5 },
   averageRating: { type: Number, default: 0, min: 0, max: 5 },
   totalReviews: { type: Number, default: 0, min: 0 },
+  hasSize: { type: Boolean, default: false },
+  availableSizes: [{ type: String }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

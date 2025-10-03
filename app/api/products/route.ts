@@ -119,6 +119,22 @@ export async function POST(request: NextRequest) {
     const stock = parseInt(stockString) || 0;
     const rating = parseFloat(ratingString) || 4.0;
 
+    // Extract size fields
+    const hasSizeString = formData.get('hasSize') as string;
+    const availableSizesString = formData.get('availableSizes') as string;
+    
+    const hasSize = hasSizeString === 'true';
+    let availableSizes: string[] = [];
+    
+    if (hasSize && availableSizesString) {
+      try {
+        availableSizes = JSON.parse(availableSizesString);
+      } catch (error) {
+        console.error('Error parsing availableSizes:', error);
+        availableSizes = [];
+      }
+    }
+
     // Validate numeric values
     if (isNaN(price) || price <= 0) {
       return NextResponse.json(
@@ -220,7 +236,9 @@ export async function POST(request: NextRequest) {
       brand: brand.trim(),
       images,
       stock,
-      rating
+      rating,
+      hasSize,
+      availableSizes
     };
 
     console.log('Creating product with:', {

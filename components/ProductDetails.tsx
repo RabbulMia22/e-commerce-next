@@ -19,6 +19,8 @@ interface IProduct {
   images: string[];
   stock: number;
   rating: number;
+  hasSize: boolean;
+  availableSizes: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -84,8 +86,10 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
   const handleAddToCart = async () => {
     if (!data?.data) return
 
-    // Check if size is selected
-    if (!selectedSize) {
+    const product = data.data
+
+    // Check if size is required and selected
+    if (product.hasSize && !selectedSize) {
       toast.error('Please select a size before adding to cart', {
         duration: 3000,
         position: 'top-right',
@@ -101,15 +105,16 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
     setIsAddingToCart(true)
 
     try {
-      const product = data.data
-
       // Add items to cart one by one (since your store adds 1 at a time)
+      const sizeToUse = product.hasSize ? selectedSize : 'N/A'
+      
       for (let i = 0; i < quantity; i++) {
-        addToBasket(product, selectedSize)
+        addToBasket(product, sizeToUse)
       }
 
       // Show success message
-      toast.success(`Added ${quantity} ${product.title} (Size: ${selectedSize}) to cart!`, {
+      const sizeText = product.hasSize ? ` (Size: ${selectedSize})` : ''
+      toast.success(`Added ${quantity} ${product.title}${sizeText} to cart!`, {
         duration: 3000,
         position: 'top-right',
         style: {
@@ -137,7 +142,8 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
   }
 
   // Get current item count in cart for this product and size
-  const currentItemCount = data?.data ? getItemCount(data.data._id, selectedSize) : 0
+  const currentItemCount = data?.data ? 
+    getItemCount(data.data._id, data.data.hasSize ? selectedSize : 'N/A') : 0
 
   if (isLoading) {
     return (
@@ -196,9 +202,6 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
   const product: IProduct = data.data
   const totalPrice = product.price * quantity
-
-  // Available sizes (you can customize this based on your product data)
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
   return (
     <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 lg:p-8">
@@ -317,35 +320,37 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
             </span>
           </div>
 
-          {/* Size Selector */}
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900">Size</h3>
-              <span className="text-red-500 text-sm">*</span>
-              {!selectedSize && (
-                <span className="text-red-500 text-xs sm:text-sm">(Please select a size)</span>
+          {/* Size Selector - Only show if product has sizes */}
+          {product.hasSize && product.availableSizes?.length > 0 && (
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Size</h3>
+                <span className="text-red-500 text-sm">*</span>
+                {!selectedSize && (
+                  <span className="text-red-500 text-xs sm:text-sm">(Please select a size)</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {product.availableSizes.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg border transition-all ${selectedSize === size
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-md transform scale-105'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-orange-300 hover:text-orange-600 hover:shadow-sm'
+                      }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+              {selectedSize && currentItemCount > 0 && (
+                <p className="text-sm text-blue-600 bg-blue-50 p-2 rounded-lg border border-blue-200">
+                  💡 {currentItemCount} item(s) of size {selectedSize} already in cart
+                </p>
               )}
             </div>
-            <div className="flex flex-wrap gap-2">
-              {availableSizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg border transition-all ${selectedSize === size
-                      ? 'bg-orange-500 text-white border-orange-500 shadow-md transform scale-105'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-orange-300 hover:text-orange-600 hover:shadow-sm'
-                    }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-            {selectedSize && currentItemCount > 0 && (
-              <p className="text-sm text-blue-600 bg-blue-50 p-2 rounded-lg border border-blue-200">
-                💡 {currentItemCount} item(s) of size {selectedSize} already in cart
-              </p>
-            )}
-          </div>
+          )}
 
           {/* Quantity Selector */}
           {product.stock > 0 && (
@@ -464,10 +469,10 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
             <button
               onClick={handleAddToCart}
-              disabled={product.stock === 0 || isAddingToCart || !selectedSize}
+              disabled={product.stock === 0 || isAddingToCart || (product.hasSize && !selectedSize)}
               className={`flex-1 px-4 py-2 sm:px-8 sm:py-3 font-medium rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base ${product.stock === 0
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : !selectedSize
+                  : (product.hasSize && !selectedSize)
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : isAddingToCart
                       ? 'bg-orange-400 text-white cursor-wait'
@@ -487,7 +492,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                   <span className="hidden sm:inline">
                     {product.stock === 0
                       ? 'Out of Stock'
-                      : !selectedSize
+                      : (product.hasSize && !selectedSize)
                         ? 'Select Size First'
                         : `Add ${quantity} to Cart`
                     }
@@ -495,7 +500,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                   <span className="sm:hidden">
                     {product.stock === 0
                       ? 'Out of Stock'
-                      : !selectedSize
+                      : (product.hasSize && !selectedSize)
                         ? 'Select Size'
                         : 'Add to Cart'
                     }
