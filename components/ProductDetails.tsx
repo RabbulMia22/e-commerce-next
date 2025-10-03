@@ -371,9 +371,9 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                   <button
                     onClick={handleQuantityDecrease}
                     disabled={quantity <= 1}
-                    className={`p-2 sm:p-3 transition-colors ${quantity <= 1
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                    className={`p-2 sm:p-3 transition-colors text-black ${quantity <= 1
+                        ? 'bg-gray-100 text-black cursor-not-allowed'
+                        : 'bg-gray-50 hover:bg-gray-100 text-black'
                       }`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,7 +387,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                     max={product.stock}
                     value={quantity}
                     onChange={handleQuantityChange}
-                    className="w-12 sm:w-16 px-2 sm:px-3 py-2 sm:py-3 text-center border-0 focus:outline-none focus:ring-0 bg-white text-sm sm:text-base"
+                    className="w-12 sm:w-16 px-2 sm:px-3 py-2 sm:py-3 text-center border-0 focus:outline-none focus:ring-0 bg-white text-sm sm:text-base text-black"
                   />
 
                   <button
@@ -442,19 +442,19 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
               <div>
                 <span className="text-gray-600">Brand:</span>
-                <span className="ml-2 font-medium">{product.brand}</span>
+                <span className="ml-2 font-medium text-black">{product.brand}</span>
               </div>
               <div>
                 <span className="text-gray-600">Category:</span>
-                <span className="ml-2 font-medium">{product.category}</span>
+                <span className="ml-2 font-medium text-black">{product.category}</span>
               </div>
               <div>
                 <span className="text-gray-600">Stock:</span>
-                <span className="ml-2 font-medium">{product.stock} units</span>
+                <span className="ml-2 font-medium text-black">{product.stock} units</span>
               </div>
               <div>
                 <span className="text-gray-600">Rating:</span>
-                <span className="ml-2 font-medium">
+                <span className="ml-2 font-medium text-black">
                   {reviewStats?.averageRating?.toFixed(1) || '0.0'}/5
                   {reviewStats?.pagination?.totalReviews > 0 && (
                     <span className="text-gray-500 text-xs ml-1">

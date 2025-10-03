@@ -29,10 +29,10 @@ interface Product {
   images: string[]
   category: string
   brand: string
-  sizes: string[]
-  colors: string[]
+  hasSize: boolean
+  availableSizes: string[]
   stock: number
-  featured: boolean
+  rating: number
   createdAt: string
   updatedAt: string
 }
@@ -47,6 +47,36 @@ function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [newSize, setNewSize] = useState('')
+
+  // Size management functions
+  const addSize = () => {
+    if (newSize.trim() && editingProduct && (!editingProduct.availableSizes || !editingProduct.availableSizes.includes(newSize.trim()))) {
+      setEditingProduct({
+        ...editingProduct,
+        availableSizes: [...(editingProduct.availableSizes || []), newSize.trim()]
+      })
+      setNewSize('')
+    }
+  }
+
+  const removeSize = (sizeToRemove: string) => {
+    if (editingProduct) {
+      setEditingProduct({
+        ...editingProduct,
+        availableSizes: editingProduct.availableSizes?.filter(size => size !== sizeToRemove) || []
+      })
+    }
+  }
+
+  const addPredefinedSize = (size: string) => {
+    if (editingProduct && (!editingProduct.availableSizes || !editingProduct.availableSizes.includes(size))) {
+      setEditingProduct({
+        ...editingProduct,
+        availableSizes: [...(editingProduct.availableSizes || []), size]
+      })
+    }
+  }
 
   // Fetch products from API
   useEffect(() => {
@@ -190,14 +220,12 @@ function ProductsPage() {
       formData.append('category', updatedProduct.category || '')
       formData.append('brand', updatedProduct.brand || 'Generic')
       formData.append('stock', (updatedProduct.stock || 0).toString())
-      formData.append('featured', (updatedProduct.featured || false).toString())
+      formData.append('rating', (updatedProduct.rating || 0).toString())
       
       // Add sizes and colors as JSON strings
-      if (updatedProduct.sizes && updatedProduct.sizes.length > 0) {
-        formData.append('sizes', JSON.stringify(updatedProduct.sizes))
-      }
-      if (updatedProduct.colors && updatedProduct.colors.length > 0) {
-        formData.append('colors', JSON.stringify(updatedProduct.colors))
+      formData.append('hasSize', updatedProduct.hasSize.toString())
+      if (updatedProduct.hasSize && updatedProduct.availableSizes && updatedProduct.availableSizes.length > 0) {
+        formData.append('availableSizes', JSON.stringify(updatedProduct.availableSizes))
       }
 
       const response = await axios.put('/api/products', formData, {
@@ -265,7 +293,7 @@ function ProductsPage() {
               placeholder="Search by product name, category, or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
             />
           </div>
 
@@ -539,36 +567,32 @@ function ProductsPage() {
 
                     {/* Variants */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Variants</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Configuration</h3>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                         <div>
-                          <span className="font-medium">Available Sizes:</span>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {selectedProduct.sizes && selectedProduct.sizes.length > 0 ? (
-                              selectedProduct.sizes.map((size, index) => (
-                                <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                                  {size}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-gray-500">No sizes specified</span>
-                            )}
-                          </div>
+                          <span className="font-medium">Has Sizes:</span>
+                          <span className={`ml-2 px-2 py-1 rounded text-sm ${
+                            selectedProduct.hasSize ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {selectedProduct.hasSize ? 'Yes' : 'No'}
+                          </span>
                         </div>
-                        <div>
-                          <span className="font-medium">Available Colors:</span>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {selectedProduct.colors && selectedProduct.colors.length > 0 ? (
-                              selectedProduct.colors.map((color, index) => (
-                                <span key={index} className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
-                                  {color}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-gray-500">No colors specified</span>
-                            )}
+                        {selectedProduct.hasSize && (
+                          <div>
+                            <span className="font-medium">Available Sizes:</span>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {selectedProduct.availableSizes && selectedProduct.availableSizes.length > 0 ? (
+                                selectedProduct.availableSizes.map((size, index) => (
+                                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                                    {size}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-gray-500">No sizes specified</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
 
@@ -587,12 +611,11 @@ function ProductsPage() {
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">Featured Product:</span>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${
-                            selectedProduct.featured ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : 'bg-gray-100 text-gray-800 border-gray-200'
-                          }`}>
-                            {selectedProduct.featured ? 'Yes' : 'No'}
-                          </span>
+                          <span className="font-medium">Rating:</span>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span>{selectedProduct.rating || 0}/5</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -677,12 +700,12 @@ function ProductsPage() {
                     </label>
                     <input
                       type="text"
-                      value={editingProduct.title}
+                      value={editingProduct.title || ''}
                       onChange={(e) => setEditingProduct({
                         ...editingProduct,
                         title: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     />
                   </div>
@@ -692,12 +715,12 @@ function ProductsPage() {
                       Category
                     </label>
                     <select
-                      value={editingProduct.category}
+                      value={editingProduct.category || ''}
                       onChange={(e) => setEditingProduct({
                         ...editingProduct,
                         category: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="electronics">Electronics</option>
                       <option value="clothing">Clothing</option>
@@ -718,7 +741,7 @@ function ProductsPage() {
                         ...editingProduct,
                         brand: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="Enter brand name"
                     />
                   </div>
@@ -730,12 +753,12 @@ function ProductsPage() {
                     <input
                       type="number"
                       step="0.01"
-                      value={editingProduct.price}
+                      value={editingProduct.price || 0}
                       onChange={(e) => setEditingProduct({
                         ...editingProduct,
                         price: parseFloat(e.target.value) || 0
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     />
                   </div>
@@ -746,12 +769,12 @@ function ProductsPage() {
                     </label>
                     <input
                       type="number"
-                      value={editingProduct.stock}
+                      value={editingProduct.stock || 0}
                       onChange={(e) => setEditingProduct({
                         ...editingProduct,
                         stock: parseInt(e.target.value) || 0
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     />
                   </div>
@@ -768,7 +791,7 @@ function ProductsPage() {
                       description: e.target.value
                     })}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
                     required
                   />
                 </div>
@@ -777,15 +800,85 @@ function ProductsPage() {
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={editingProduct.featured}
+                      checked={editingProduct.hasSize || false}
                       onChange={(e) => setEditingProduct({
                         ...editingProduct,
-                        featured: e.target.checked
+                        hasSize: e.target.checked,
+                        availableSizes: e.target.checked ? editingProduct.availableSizes || [] : []
                       })}
                       className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <span className="text-sm font-medium text-gray-700">Featured Product</span>
+                    <span className="text-sm font-medium text-gray-700">Product has sizes</span>
                   </label>
+
+                  {/* Size Management */}
+                  {editingProduct.hasSize && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Quick Size Selection</label>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL'].map((size) => (
+                            <button
+                              key={size}
+                              type="button"
+                              onClick={() => addPredefinedSize(size)}
+                              disabled={editingProduct.availableSizes?.includes(size)}
+                              className={`px-3 py-1 text-sm rounded border transition-all ${
+                                editingProduct.availableSizes?.includes(size)
+                                  ? 'bg-green-500 text-white border-green-500 cursor-not-allowed'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                              }`}
+                            >
+                              {size} {editingProduct.availableSizes?.includes(size) && '✓'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Add Custom Size</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newSize}
+                            onChange={(e) => setNewSize(e.target.value)}
+                            placeholder="Enter custom size (e.g., 30, 32, UK 8)"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                          <button
+                            type="button"
+                            onClick={addSize}
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+
+                      {editingProduct.availableSizes && editingProduct.availableSizes.length > 0 && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Selected Sizes</label>
+                          <div className="flex flex-wrap gap-2">
+                            {editingProduct.availableSizes.map((size) => (
+                              <span
+                                key={size}
+                                className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                              >
+                                {size}
+                                <button
+                                  type="button"
+                                  onClick={() => removeSize(size)}
+                                  className="ml-2 text-blue-600 hover:text-blue-800"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-4 justify-end border-t pt-6">

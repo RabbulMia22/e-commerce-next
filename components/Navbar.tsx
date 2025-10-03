@@ -38,8 +38,7 @@ function Navbar() {
     // Navigation items
     const navItems = [
         { name: "Home", href: "/" },
-        { name: "Products", href: "/products" },
-        { name: "Deals", href: "/deals" },
+        { name: "Shop", href: "/shop" },
         { 
             name: isAdmin ? "Dashboard" : "My Orders", 
             href: isAdmin ? "/dashboard" : "/orders" 
