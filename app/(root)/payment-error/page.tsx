@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -45,7 +45,7 @@ const errorTypes: Record<string, ErrorInfo> = {
   }
 }
 
-export default function PaymentErrorPage() {
+function PaymentErrorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isRetrying, setIsRetrying] = useState(false)
@@ -188,5 +188,13 @@ export default function PaymentErrorPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PaymentErrorPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <PaymentErrorContent />
+    </Suspense>
   )
 }

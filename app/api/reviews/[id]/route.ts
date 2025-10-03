@@ -8,12 +8,13 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 // GET /api/reviews/[id] - Get specific review
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectMongoDB()
+    const { id } = await params
     
-    const review = await Review.findById(params.id)
+    const review = await Review.findById(id)
     
     if (!review) {
       return NextResponse.json(
@@ -39,10 +40,11 @@ export async function GET(
 // PUT /api/reviews/[id] - Update specific review
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
+    const { id } = await params
     
     if (!session || !session.user?.email) {
       return NextResponse.json(
@@ -66,7 +68,7 @@ export async function PUT(
     }
 
     // Find review and check ownership
-    const review = await Review.findById(params.id)
+    const review = await Review.findById(id)
     if (!review) {
       return NextResponse.json(
         { success: false, error: 'Review not found' },
@@ -98,7 +100,7 @@ export async function PUT(
 
     // Update review
     const updatedReview = await Review.findByIdAndUpdate(
-      params.id,
+      id,
       {
         ...(rating && { rating }),
         ...(title && { title: title.trim() }),
@@ -126,10 +128,11 @@ export async function PUT(
 // DELETE /api/reviews/[id] - Delete specific review
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
+    const { id } = await params
     
     if (!session || !session.user?.email) {
       return NextResponse.json(
@@ -150,7 +153,7 @@ export async function DELETE(
     }
 
     // Find review and check ownership
-    const review = await Review.findById(params.id)
+    const review = await Review.findById(id)
     if (!review) {
       return NextResponse.json(
         { success: false, error: 'Review not found' },
@@ -165,7 +168,7 @@ export async function DELETE(
       )
     }
 
-    await Review.findByIdAndDelete(params.id)
+    await Review.findByIdAndDelete(id)
 
     return NextResponse.json({
       success: true,

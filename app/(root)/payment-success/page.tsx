@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { useHydratedStore } from '@/hooks/useHydratedStore'
 
-function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams()
   const [orderDetails, setOrderDetails] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -367,4 +367,10 @@ function PaymentSuccessPage() {
   )
 }
 
-export default PaymentSuccessPage
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <PaymentSuccessContent />
+    </Suspense>
+  )
+}

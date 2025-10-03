@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
@@ -17,7 +17,7 @@ import {
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-function LoginPage() {
+function LoginPageContent() {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -360,4 +360,10 @@ function LoginPage() {
   )
 }
 
-export default LoginPage
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
+  )
+}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { Star, X, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -29,7 +29,7 @@ interface CloudinaryResponse {
   public_id: string;
 }
 
-function ReviewPage() {
+function ReviewPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -458,4 +458,10 @@ function ReviewPage() {
   );
 }
 
-export default ReviewPage;
+export default function ReviewPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ReviewPageContent />
+    </Suspense>
+  )
+}
