@@ -90,7 +90,7 @@ export async function POST(req: Request) {
 
     // Validate transaction with SSLCommerz
     const store_id = process.env.SSLCOMMERZ_STORE_ID!;
-    const store_passwd = process.env.SSLCOMMERZ_STORE_PASSWORD!;
+    const store_passwd = process.env.SSLCOMMERZ_STORE_PASS!;
     const validationUrl = `https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?val_id=${sslData.val_id}&store_id=${store_id}&store_passwd=${store_passwd}&v=1&format=json`;
 
     const validateResponse = await fetch(validationUrl);
