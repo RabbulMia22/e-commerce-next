@@ -52,6 +52,15 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
     enabled: !!id,
   })
 
+  // Auto-set selectedSize for products that don't need sizes
+  React.useEffect(() => {
+    if (data?.data && !data.data.hasSize) {
+      setSelectedSize('N/A')
+    } else if (data?.data && data.data.hasSize) {
+      setSelectedSize('')
+    }
+  }, [data?.data])
+
   // Fetch review statistics for dynamic rating
   const { data: reviewStats } = useQuery({
     queryKey: ['reviewStats', id],
@@ -88,8 +97,9 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
     const product = data.data
 
-    // Check if size is required and selected
-    if (product.hasSize && !selectedSize) {
+    // Check if size is required and selected (default to false if hasSize is undefined)
+    const needsSize = product.hasSize === true
+    if (needsSize && !selectedSize) {
       toast.error('Please select a size before adding to cart', {
         duration: 3000,
         position: 'top-right',
@@ -106,14 +116,14 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
     try {
       // Add items to cart one by one (since your store adds 1 at a time)
-      const sizeToUse = product.hasSize ? selectedSize : 'N/A'
+      const sizeToUse = needsSize ? selectedSize : 'N/A'
       
       for (let i = 0; i < quantity; i++) {
         addToBasket(product, sizeToUse)
       }
 
       // Show success message
-      const sizeText = product.hasSize ? ` (Size: ${selectedSize})` : ''
+      const sizeText = needsSize ? ` (Size: ${selectedSize})` : ''
       toast.success(`Added ${quantity} ${product.title}${sizeText} to cart!`, {
         duration: 3000,
         position: 'top-right',
@@ -143,7 +153,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
   // Get current item count in cart for this product and size
   const currentItemCount = data?.data ? 
-    getItemCount(data.data._id, data.data.hasSize ? selectedSize : 'N/A') : 0
+    getItemCount(data.data._id, (data.data.hasSize === true) ? selectedSize : 'N/A') : 0
 
   if (isLoading) {
     return (
@@ -321,7 +331,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
           </div>
 
           {/* Size Selector - Only show if product has sizes */}
-          {product.hasSize && product.availableSizes?.length > 0 && (
+          {product.hasSize === true && product.availableSizes?.length > 0 && (
             <div className="space-y-2 sm:space-y-3">
               <div className="flex items-center gap-2">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900">Size</h3>
@@ -469,10 +479,10 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
             <button
               onClick={handleAddToCart}
-              disabled={product.stock === 0 || isAddingToCart || (product.hasSize && !selectedSize)}
+              disabled={product.stock === 0 || isAddingToCart || (product.hasSize === true && !selectedSize)}
               className={`flex-1 px-4 py-2 sm:px-8 sm:py-3 font-medium rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base ${product.stock === 0
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : (product.hasSize && !selectedSize)
+                  : (product.hasSize === true && !selectedSize)
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : isAddingToCart
                       ? 'bg-orange-400 text-white cursor-wait'
@@ -492,7 +502,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                   <span className="hidden sm:inline">
                     {product.stock === 0
                       ? 'Out of Stock'
-                      : (product.hasSize && !selectedSize)
+                      : (product.hasSize === true && !selectedSize)
                         ? 'Select Size First'
                         : `Add ${quantity} to Cart`
                     }
@@ -500,7 +510,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                   <span className="sm:hidden">
                     {product.stock === 0
                       ? 'Out of Stock'
-                      : (product.hasSize && !selectedSize)
+                      : (product.hasSize === true && !selectedSize)
                         ? 'Select Size'
                         : 'Add to Cart'
                     }

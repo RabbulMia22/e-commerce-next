@@ -135,6 +135,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log('Size fields processed:', { hasSize, availableSizes });
+
     // Validate numeric values
     if (isNaN(price) || price <= 0) {
       return NextResponse.json(
