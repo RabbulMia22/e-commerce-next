@@ -143,6 +143,48 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+
+    // Handle redirects after sign in
+    async redirect({ url, baseUrl }) {
+      // Mobile-specific URL handling
+      console.log("NextAuth redirect:", { url, baseUrl });
+      
+      // If url is relative, make it absolute
+      if (url.startsWith("/")) {
+        url = baseUrl + url;
+      }
+      
+      // Handle common mobile redirect issues
+      if (url.includes('payemt-checkout') || url.includes('payment-checkout')) {
+        return baseUrl + '/cart?checkout=true';
+      }
+      
+      // Handle callback URLs
+      try {
+        const parsedUrl = new URL(url);
+        const callbackUrl = parsedUrl.searchParams.get('callbackUrl');
+        if (callbackUrl) {
+          // Ensure callback URL is safe and valid
+          if (callbackUrl.startsWith('/')) {
+            return baseUrl + callbackUrl;
+          }
+          if (callbackUrl.startsWith(baseUrl)) {
+            return callbackUrl;
+          }
+        }
+      } catch (e) {
+        // Invalid URL, fallback to cart
+        console.error("Invalid redirect URL:", e);
+      }
+      
+      // Default redirects
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      
+      // Fallback to cart page for mobile users
+      return baseUrl + '/cart';
+    },
   },
 
   pages: {

@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import useBasketStore from '@/store/store';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, CreditCard } from 'lucide-react';
 import { useSession, signIn } from 'next-auth/react';
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-function CartPage() {
+function CartPageContent() {
   const {
     basket: items,
     addToBasket,
@@ -32,8 +32,20 @@ function CartPage() {
     return { itemCount, totalPrice, subtotal, shipping, tax, total };
   }, [items, getTotalPrice]);
 
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Auto-redirect to checkout after login on mobile
+  useEffect(() => {
+    const checkout = searchParams.get('checkout');
+    if (status === 'authenticated' && session && checkout === 'true' && items.length > 0) {
+      // Small delay to ensure smooth transition
+      setTimeout(() => {
+        router.push('/payment-checkout');
+      }, 500);
+    }
+  }, [status, session, searchParams, items.length, router]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -43,9 +55,10 @@ function CartPage() {
   };
   const handlePayment = () => {
     if (!session) {
-      signIn(undefined, { callbackUrl: '/cart' });
+      // For better mobile experience, redirect to login with cart as callback
+      router.push('/authentication/login?callbackUrl=' + encodeURIComponent('/cart?checkout=true'));
     } else {
-      router.push('/payemt-checkout');
+      router.push('/payment-checkout');
     }
   };
 
@@ -306,6 +319,21 @@ function CartPage() {
       </div>
     </div>
   );
+}
+
+function CartPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading cart...</p>
+        </div>
+      </div>
+    }>
+      <CartPageContent />
+    </Suspense>
+  )
 }
 
 export default CartPage;

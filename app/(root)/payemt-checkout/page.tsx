@@ -124,7 +124,7 @@ function PaymentCheckoutPage() {
 
     if (status === 'unauthenticated') {
       setIsSessionLoading(false)
-      router.push('/authentication/login?callbackUrl=/payemt-checkout')
+      router.push('/authentication/login?callbackUrl=/cart')
       return
     }
 

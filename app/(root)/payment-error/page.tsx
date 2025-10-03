@@ -76,7 +76,7 @@ function PaymentErrorContent() {
     
     // Add a small delay for UX
     setTimeout(() => {
-      router.push('/payemt-checkout')
+      router.push('/payment-checkout')
     }, 1000)
   }
 

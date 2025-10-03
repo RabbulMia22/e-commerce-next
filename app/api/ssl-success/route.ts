@@ -307,7 +307,42 @@ export async function POST(req: NextRequest) {
     const savedOrder = await newOrder.save();
     console.log("✅ Order created successfully:", savedOrder.orderNumber);
     
-    const orderNumber = savedOrder.orderNumber;    // Mark pending order as completed
+    const orderNumber = savedOrder.orderNumber;
+    
+    // Send success email notification
+    try {
+      const { sendEmail, generatePaymentSuccessEmail } = await import('@/lib/email');
+      
+      const orderDetails = {
+        orderId: savedOrder.orderNumber,
+        customerName: savedOrder.shippingAddress.fullName,
+        customerEmail: pendingOrder.userEmail || 'customer@example.com',
+        amount: savedOrder.totalAmount,
+        currency: 'BDT',
+        products: validatedItems.map(item => ({
+          title: item.title,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        shippingAddress: `${savedOrder.shippingAddress.address}, ${savedOrder.shippingAddress.area}, ${savedOrder.shippingAddress.district}, ${savedOrder.shippingAddress.division}`
+      };
+
+      const emailTemplate = generatePaymentSuccessEmail(orderDetails);
+      
+      await sendEmail({
+        to: orderDetails.customerEmail,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text
+      });
+      
+      console.log("✅ Success email sent to:", orderDetails.customerEmail);
+    } catch (emailError) {
+      console.error("❌ Failed to send success email:", emailError);
+      // Continue processing even if email fails
+    }
+    
+    // Mark pending order as completed
     if (pendingOrder) {
       pendingOrder.status = 'completed';
       await pendingOrder.save();

@@ -282,7 +282,33 @@ function Navbar() {
                         onClick={() => setAccount(!account)}
                         className="cursor-pointer"
                     />
-                    <span className="text-xs mt-1">Account</span>
+                     {account && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                <div className="py-2">
+                                    <p
+                                        onClick={() => setAccount(!account)}
+                                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
+                                        My Account
+                                    </p>
+                                    {session ? (
+                                        <p
+                                            onClick={() => signOut({ callbackUrl: "/" })}
+                                            className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                        >
+                                            Logout
+                                        </p>
+                                    ) : (
+                                        <Link
+                                            onClick={() => setAccount(!account)}
+                                            href="/authentication/login"
+                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                        >
+                                            Login
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                 </div>
             </div>
 

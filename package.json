@@ -16,6 +16,7 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/multer": "^2.0.0",
+    "@types/nodemailer": "^7.0.2",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^1.41.3",
@@ -30,6 +31,7 @@
     "next": "15.5.4",
     "next-auth": "^4.24.11",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^6.10.1",
     "react": "19.1.0",
     "react-datepicker": "^8.7.0",
     "react-dom": "19.1.0",
@@ -56,4 +58,3 @@
     "typescript": "^5"
   }
 }
-

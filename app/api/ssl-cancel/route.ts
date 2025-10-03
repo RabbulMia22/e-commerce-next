@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+import connectDB from "@/lib/db";
+import PendingOrder from "@/models/pendingOrder";
 
 export async function POST(req: Request) {
   try {
+    await connectDB();
+    
     const formData = await req.formData();
     
     // SSLCommerz cancel response data
@@ -16,7 +20,48 @@ export async function POST(req: Request) {
       verify_sign_sha2: formData.get('verify_sign_sha2'),
     };
 
-    console.log('SSL Cancel Data:', sslData);
+    console.log('🚫 Payment cancelled:', sslData);
+    
+    // Send cancellation email notification
+    try {
+      const tran_id = sslData.tran_id as string;
+      if (tran_id) {
+        const pendingOrder = await (PendingOrder as any).findOne({
+          $or: [
+            { transactionId: tran_id },
+            { orderId: tran_id }
+          ],
+          status: 'pending'
+        });
+        
+        if (pendingOrder) {
+          const { sendEmail, generatePaymentFailureEmail } = await import('@/lib/email');
+          
+          const orderDetails = {
+            orderId: pendingOrder.orderId,
+            customerName: pendingOrder.shippingAddress?.fullName || 'Customer',
+            customerEmail: pendingOrder.userEmail || 'customer@example.com',
+            amount: pendingOrder.pricing?.totalAmount || parseFloat(sslData.amount as string) || 0,
+            currency: 'BDT',
+            failureReason: 'Payment was cancelled by user'
+          };
+
+          const emailTemplate = generatePaymentFailureEmail(orderDetails);
+          
+          await sendEmail({
+            to: orderDetails.customerEmail,
+            subject: emailTemplate.subject.replace('❌ Payment Failed', '🚫 Payment Cancelled'),
+            html: emailTemplate.html.replace('Payment Failed', 'Payment Cancelled').replace('Unfortunately, we were unable to process your payment', 'Your payment was cancelled'),
+            text: emailTemplate.text?.replace('Payment Failed', 'Payment Cancelled').replace('Unfortunately, we were unable to process your payment', 'Your payment was cancelled')
+          });
+          
+          console.log("✅ Cancellation email sent to:", orderDetails.customerEmail);
+        }
+      }
+    } catch (emailError) {
+      console.error("❌ Failed to send cancellation email:", emailError);
+      // Continue processing even if email fails
+    }
 
     // Get base URL with fallback
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
