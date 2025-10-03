@@ -1,6 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛒 ShopMate - Modern E-Commerce Platform
 
-## Getting Started
+**ShopMate** is a full-stack e-commerce platform built with Next.js, featuring secure payments, user authentication, and admin dashboard functionality.
+
+## 🚀 Features
+
+- **Modern UI/UX** with Tailwind CSS and Framer Motion animations
+- **User Authentication** with NextAuth.js and Google OAuth
+- **Product Management** with search and filtering capabilities
+- **Shopping Cart** with persistent state management
+- **Secure Payments** via SSLCommerz payment gateway
+- **Admin Dashboard** for managing products, orders, and revenue
+- **Responsive Design** optimized for all devices
+- **Image Upload** with Cloudinary integration
+
+## 🛠 Tech Stack
+
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, MongoDB with Mongoose
+- **Authentication**: NextAuth.js with Google OAuth
+- **Payments**: SSLCommerz Payment Gateway
+- **State Management**: Redux Toolkit with Zustand
+- **Image Storage**: Cloudinary
+- **Deployment**: Vercel
+
+## 🏃‍♂️ Getting Started
 
 First, run the development server:
 
@@ -16,9 +39,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project uses modern Next.js features including App Router, Server Components, and TypeScript for type safety.
 
 ## Learn More
 
