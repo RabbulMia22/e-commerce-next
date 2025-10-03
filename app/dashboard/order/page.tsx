@@ -436,8 +436,8 @@ function OrderPage() {
                         Payment Information
                       </h3>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <p><span className="font-medium">Method:</span> {selectedOrder.paymentInfo.method}</p>
-                        <p><span className="font-medium">Status:</span> 
+                        <p className='text-black'><span className="font-medium">Method:</span> {selectedOrder.paymentInfo.method}</p>
+                        <p className='text-black'><span className="font-medium">Status:</span> 
                           <span className={`ml-2 px-2 py-1 rounded text-sm ${
                             selectedOrder.paymentInfo.paymentStatus === 'completed' 
                               ? 'bg-green-100 text-green-800' 
@@ -447,14 +447,14 @@ function OrderPage() {
                           </span>
                         </p>
                         {selectedOrder.paymentInfo.sslTransactionId && (
-                          <p><span className="font-medium">Transaction ID:</span> {selectedOrder.paymentInfo.sslTransactionId}</p>
+                          <p className='text-black'><span className="font-medium">Transaction ID:</span> {selectedOrder.paymentInfo.sslTransactionId}</p>
                         )}
                         {selectedOrder.paymentInfo.cardType && (
-                          <p><span className="font-medium">Payment Type:</span> {selectedOrder.paymentInfo.cardType}</p>
+                          <p className='text-black'><span className="font-medium">Payment Type:</span> {selectedOrder.paymentInfo.cardType}</p>
                         )}
-                        <p><span className="font-medium">Amount:</span> {formatPrice(selectedOrder.paymentInfo.amount)}</p>
+                        <p className='text-black'><span className="font-medium">Amount:</span> {formatPrice(selectedOrder.paymentInfo.amount)}</p>
                         {selectedOrder.paymentInfo.paidAt && (
-                          <p><span className="font-medium">Paid At:</span> {formatDate(selectedOrder.paymentInfo.paidAt.toString())}</p>
+                          <p className='text-black'><span className="font-medium">Paid At:</span> {formatDate(selectedOrder.paymentInfo.paidAt.toString())}</p>
                         )}
                       </div>
                     </div>
@@ -466,16 +466,16 @@ function OrderPage() {
                         Order Status & Delivery
                       </h3>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <p><span className="font-medium">Status:</span> 
+                        <p className='text-black'><span className="font-medium">Status:</span> 
                           <span className={`ml-2 px-3 py-1 rounded-full text-sm ${getStatusColor(selectedOrder.orderStatus)}`}>
                             {selectedOrder.orderStatus}
                           </span>
                         </p>
-                        <p><span className="font-medium">Order Date:</span> {formatDate(selectedOrder.createdAt)}</p>
-                        <p><span className="font-medium">Last Updated:</span> {formatDate(selectedOrder.updatedAt)}</p>
-                        <p><span className="font-medium">Delivery Type:</span> {selectedOrder.deliveryType}</p>
+                        <p className='text-black'><span className="font-medium">Order Date:</span> {formatDate(selectedOrder.createdAt)}</p>
+                        <p className='text-black'><span className="font-medium">Last Updated:</span> {formatDate(selectedOrder.updatedAt)}</p>
+                        <p className='text-black'><span className="font-medium">Delivery Type:</span> {selectedOrder.deliveryType}</p>
                         {selectedOrder.notes && (
-                          <p><span className="font-medium">Notes:</span> {selectedOrder.notes}</p>
+                          <p className='text-black'><span className="font-medium">Notes:</span> {selectedOrder.notes}</p>
                         )}
                       </div>
                     </div>
@@ -530,21 +530,21 @@ function OrderPage() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span>Subtotal:</span>
-                      <span>{formatPrice(selectedOrder.subtotal)}</span>
+                      <span className='text-black'>Subtotal:</span>
+                      <span className='text-black'>{formatPrice(selectedOrder.subtotal)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Shipping Cost:</span>
-                      <span>{formatPrice(selectedOrder.shippingCost)}</span>
+                      <span className='text-black'>Shipping Cost:</span>
+                      <span className='text-black'>{formatPrice(selectedOrder.shippingCost)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Tax:</span>
-                      <span>{formatPrice(selectedOrder.tax)}</span>
+                      <span className='text-black'>Tax:</span>
+                      <span className='text-black'>{formatPrice(selectedOrder.tax)}</span>
                     </div>
                     <div className="border-t pt-2 mt-2">
                       <div className="flex justify-between font-semibold text-lg">
-                        <span>Total:</span>
-                        <span>{formatPrice(selectedOrder.totalAmount)}</span>
+                        <span className='text-black'>Total:</span>
+                        <span className='text-black'>{formatPrice(selectedOrder.totalAmount)}</span>
                       </div>
                     </div>
                   </div>
