@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
           await dbConnect();
           
           // Find user with password field
-          const user = await User.findOne({ email: credentials.email as string });
+          const user = await (User as any).findOne({ email: credentials.email as string });
           
           if (!user) {
             throw new Error("No user found with the given email");
@@ -75,11 +75,11 @@ export const authOptions: NextAuthOptions = {
         if (account?.provider === "google" && profile) {
           await dbConnect();
           
-          const existingUser = await User.findOne({ email: (profile as any).email });
+          const existingUser = await (User as any).findOne({ email: (profile as any).email });
           
           if (!existingUser) {
             // ✅ Create user with fields that exist in your schema
-            await User.create({
+            await (User as any).create({
               name: (profile as any).name || `${(profile as any).given_name || ''} ${(profile as any).family_name || ''}`.trim(),
               email: (profile as any).email,
               role: "user",
@@ -116,7 +116,7 @@ export const authOptions: NextAuthOptions = {
       if (lookup) {
         try {
           await dbConnect();
-          const dbUser = await User.findOne(lookup).select("role _id email name phone");
+          const dbUser = await (User as any).findOne(lookup).select("role _id email name phone");
           if (dbUser) {
             t.id = dbUser._id.toString();
             t.role = dbUser.role || "user";

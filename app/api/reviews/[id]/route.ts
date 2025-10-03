@@ -99,7 +99,7 @@ export async function PUT(
     }
 
     // Update review
-    const updatedReview = await Review.findByIdAndUpdate(
+    const updatedReview = await (Review as any).findByIdAndUpdate(
       id,
       {
         ...(rating && { rating }),
@@ -144,7 +144,7 @@ export async function DELETE(
     await connectMongoDB()
 
     // Get user
-    const user = await User.findOne({ email: session.user.email })
+    const user = await (User as any).findOne({ email: session.user.email })
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -153,7 +153,7 @@ export async function DELETE(
     }
 
     // Find review and check ownership
-    const review = await Review.findById(id)
+    const review = await (Review as any).findById(id)
     if (!review) {
       return NextResponse.json(
         { success: false, error: 'Review not found' },
@@ -168,7 +168,7 @@ export async function DELETE(
       )
     }
 
-    await Review.findByIdAndDelete(id)
+    await (Review as any).findByIdAndDelete(id)
 
     return NextResponse.json({
       success: true,

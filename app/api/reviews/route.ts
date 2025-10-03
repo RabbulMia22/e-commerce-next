@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user
-    const user = await User.findOne({ email: session.user.email })
+    const user = await (User as any).findOne({ email: session.user.email })
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -397,7 +397,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const user = await User.findOne({ email: session.user.email })
+    const user = await (User as any).findOne({ email: session.user.email })
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -405,7 +405,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const review = await Review.findById(reviewId)
+    const review = await (Review as any).findById(reviewId)
     if (!review) {
       return NextResponse.json(
         { success: false, error: 'Review not found' },

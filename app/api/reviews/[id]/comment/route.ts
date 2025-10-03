@@ -40,7 +40,7 @@ export async function POST(
 
     await connectMongoDB()
 
-    const user = await User.findOne({ email: session.user.email })
+    const user = await (User as any).findOne({ email: session.user.email })
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -48,7 +48,7 @@ export async function POST(
       )
     }
 
-    const review = await Review.findById(id)
+    const review = await (Review as any).findById(id)
     if (!review) {
       return NextResponse.json(
         { success: false, error: 'Review not found' },
@@ -101,7 +101,7 @@ export async function GET(
     const { id } = await params
     await connectMongoDB()
 
-    const review = await Review.findById(id)
+    const review = await (Review as any).findById(id)
       .populate({
         path: 'comments.user',
         select: 'name email'
