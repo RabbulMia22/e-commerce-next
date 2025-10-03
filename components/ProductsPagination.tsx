@@ -6,6 +6,7 @@ import { Navigation, Pagination } from 'swiper/modules'
 import axios from 'axios'
 import ProductShowcase from './ProductShowcase'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { useSearchParams } from 'next/navigation'
 
 // Import Swiper styles
 import 'swiper/css'
@@ -41,6 +42,8 @@ export default function ProductsPagination() {
   const [currentPage, setCurrentPage] = useState(0)
   const [swiperInstance, setSwiperInstance] = useState<any>(null)
   const productsPerPage = 16
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.get('search') || ''
 
   const { data: allProducts = [], isLoading, isError, error } = useQuery({
     queryKey: ["products"],
@@ -49,19 +52,44 @@ export default function ProductsPagination() {
     retry: 3,
   });
 
-  // Split products into pages of 16
-  const totalPages = Math.ceil(allProducts.length / productsPerPage)
+  // Filter products based on search query
+  const filteredProducts = React.useMemo(() => {
+    if (!searchQuery.trim()) {
+      return allProducts;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return allProducts.filter((product: IProduct) => 
+      product.title.toLowerCase().includes(query) ||
+      product.description.toLowerCase().includes(query) ||
+      product.category.toLowerCase().includes(query) ||
+      product.brand.toLowerCase().includes(query)
+    );
+  }, [allProducts, searchQuery]);
+
+  // Split filtered products into pages of 16
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage)
   const paginatedProducts = []
   
   for (let i = 0; i < totalPages; i++) {
     const start = i * productsPerPage
     const end = start + productsPerPage
-    paginatedProducts.push(allProducts.slice(start, end))
+    paginatedProducts.push(filteredProducts.slice(start, end))
   }
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(0);
+    if (swiperInstance) {
+      swiperInstance.slideTo(0);
+    }
+  }, [searchQuery, swiperInstance]);
 
   // Debug logging
   console.log('ProductsPagination Debug:', {
     totalProducts: allProducts.length,
+    filteredProducts: filteredProducts.length,
+    searchQuery,
     productsPerPage,
     totalPages,
     currentPage,
@@ -155,14 +183,17 @@ export default function ProductsPagination() {
       {/* Header Section */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent mb-4">
-          All Products
+          {searchQuery ? `Search Results for "${searchQuery}"` : 'All Products'}
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto mb-2">
-          Discover our complete collection of premium products
+          {searchQuery 
+            ? `Found ${filteredProducts.length} products matching your search` 
+            : 'Discover our complete collection of premium products'
+          }
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm">
           <p className="text-gray-500">
-            Total: {allProducts.length} products
+            {searchQuery ? `Showing: ${filteredProducts.length}` : `Total: ${allProducts.length}`} products
           </p>
           <span className="hidden sm:inline text-gray-300">•</span>
           <p className="text-indigo-600 font-semibold">
@@ -175,8 +206,29 @@ export default function ProductsPagination() {
         </div>
       </div>
 
-      {/* Products Swiper */}
-      <div className="relative mb-8">
+      {/* No search results */}
+      {searchQuery && filteredProducts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+          <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-8">
+            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-4">No products found</h3>
+          <p className="text-gray-600 max-w-md mb-8">
+            We couldn't find any products matching "{searchQuery}". Try searching with different keywords.
+          </p>
+          <button 
+            onClick={() => window.history.back()}
+            className="bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all"
+          >
+            Go Back
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Products Swiper */}
+          <div className="relative mb-8">
         <Swiper
           modules={[Navigation, Pagination]}
           spaceBetween={0}
@@ -282,16 +334,16 @@ export default function ProductsPagination() {
         </div>
       )}
 
-      {/* Page Info */}
-      <div className="text-center text-gray-500 text-sm">
-        <p>
-          Showing products {currentPage * productsPerPage + 1} to{' '}
-          {Math.min((currentPage + 1) * productsPerPage, allProducts.length)} of{' '}
-          {allProducts.length} total products
-        </p>
-      </div>
-
-
+          {/* Page Info */}
+          <div className="text-center text-gray-500 text-sm">
+            <p>
+              Showing products {currentPage * productsPerPage + 1} to{' '}
+              {Math.min((currentPage + 1) * productsPerPage, filteredProducts.length)} of{' '}
+              {filteredProducts.length} total {searchQuery ? 'matching' : ''} products
+            </p>
+          </div>
+        </>
+      )}
     </div>
   )
 }

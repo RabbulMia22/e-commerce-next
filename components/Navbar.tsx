@@ -3,7 +3,7 @@ import useAdmin from "@/hooks/useAdmin";
 import { useHydratedStore } from "@/hooks/useHydratedStore";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FaShoppingCart, FaUserCircle, FaHome, FaThLarge } from "react-icons/fa";
@@ -15,8 +15,25 @@ function Navbar() {
     const [account, setAccount] = useState(false);
     const { loading, isAdmin } = useAdmin();
     const pathname = usePathname();
+    const router = useRouter();
     console.log("Admin Status:", isAdmin);
     console.log("Session Data:", session);
+
+    // Handle search functionality
+    const handleSearch = (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (search.trim()) {
+            // Navigate to products page with search query
+            router.push(`/products?search=${encodeURIComponent(search.trim())}`);
+        }
+    };
+
+    // Handle Enter key press in search input
+    const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
     // Navigation items
     const navItems = [
@@ -50,21 +67,26 @@ function Navbar() {
                 </Link>
 
                 {/* Search */}
-                <div className="flex flex-1 max-w-xl mx-6">
+                <form onSubmit={handleSearch} className="flex flex-1 max-w-xl mx-6">
                     <input
                         type="text"
                         placeholder="Search products..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
+                        onKeyPress={handleSearchKeyPress}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-l-md 
              focus:outline-none focus:ring-2 focus:ring-indigo-500 
              text-black placeholder:text-gray-400"
                     />
 
-                    <button className="bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 text-white px-4 py-2 rounded-r-md hover:bg-indigo-700 transition">
+                    <button 
+                        type="button"
+                        onClick={handleSearch}
+                        className="bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 text-white px-4 py-2 rounded-r-md hover:bg-indigo-700 transition"
+                    >
                         Search
                     </button>
-                </div>
+                </form>
 
                 {/* Links */}
                 <div className="flex items-center space-x-6 relative">
@@ -153,18 +175,23 @@ function Navbar() {
 
             {/* Mobile Search Bar */}
             <div className="md:hidden fixed top-0 left-0 w-full bg-white z-50 px-4 py-2 shadow">
-                <div className="flex items-center">
+                <form onSubmit={handleSearch} className="flex items-center">
                     <input
                         type="text"
                         placeholder="Search products..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
+                        onKeyPress={handleSearchKeyPress}
                         className="flex-1 text-black px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-black"
                     />
-                    <button className="bg-indigo-600 text-white px-4 py-2 rounded-r-md hover:bg-indigo-700 transition">
+                    <button 
+                        type="button"
+                        onClick={handleSearch}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-r-md hover:bg-indigo-700 transition"
+                    >
                         Search
                     </button>
-                </div>
+                </form>
             </div>
 
             {/* Mobile Bottom Navbar */}
