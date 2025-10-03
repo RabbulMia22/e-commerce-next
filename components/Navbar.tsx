@@ -134,25 +134,30 @@ function Navbar() {
 
                         {/* Dropdown */}
                         {account && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                <div className="py-2">
-                                    <p
-                                        onClick={() => setAccount(!account)}
-                                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                        My Account
-                                    </p>
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-2xl z-50 overflow-hidden">
+                                <div className="py-1">
+                                    <Link
+                                        href="/orders"
+                                        onClick={() => setAccount(false)}
+                                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
+                                    >
+                                        My Orders
+                                    </Link>
                                     {session ? (
-                                        <p
-                                            onClick={() => signOut({ callbackUrl: "/" })}
-                                            className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                        <button
+                                            onClick={() => {
+                                                setAccount(false);
+                                                signOut({ callbackUrl: "/" });
+                                            }}
+                                            className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium"
                                         >
                                             Logout
-                                        </p>
+                                        </button>
                                     ) : (
                                         <Link
-                                            onClick={() => setAccount(!account)}
+                                            onClick={() => setAccount(false)}
                                             href="/authentication/login"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                            className="block px-4 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors font-medium"
                                         >
                                             Login
                                         </Link>
@@ -282,26 +287,34 @@ function Navbar() {
                         onClick={() => setAccount(!account)}
                         className="cursor-pointer"
                     />
+                    <span className="text-xs mt-1">Account</span>
                      {account && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                <div className="py-2">
-                                    <p
-                                        onClick={() => setAccount(!account)}
-                                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
-                                        My Account
-                                    </p>
+                            <div className="absolute bottom-full right-0 mb-2 w-44 bg-white border border-gray-200 rounded-lg shadow-2xl z-[60] transform -translate-x-1/4">
+                                {/* Arrow pointing down */}
+                                <div className="absolute top-full right-6 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-white"></div>
+                                <div className="py-1">
+                                    <Link
+                                        href="/orders"
+                                        onClick={() => setAccount(false)}
+                                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium border-b border-gray-100"
+                                    >
+                                        My Orders
+                                    </Link>
                                     {session ? (
-                                        <p
-                                            onClick={() => signOut({ callbackUrl: "/" })}
-                                            className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                        <button
+                                            onClick={() => {
+                                                setAccount(false);
+                                                signOut({ callbackUrl: "/" });
+                                            }}
+                                            className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-sm font-medium"
                                         >
                                             Logout
-                                        </p>
+                                        </button>
                                     ) : (
                                         <Link
-                                            onClick={() => setAccount(!account)}
+                                            onClick={() => setAccount(false)}
                                             href="/authentication/login"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                            className="block px-4 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors text-sm font-medium"
                                         >
                                             Login
                                         </Link>

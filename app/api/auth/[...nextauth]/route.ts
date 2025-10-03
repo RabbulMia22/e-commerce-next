@@ -60,6 +60,15 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          // This helps with mobile redirect issues
+          redirect_uri: process.env.NEXTAUTH_URL + "/api/auth/callback/google"
+        }
+      },
     }),
   ],
 
@@ -146,50 +155,100 @@ export const authOptions: NextAuthOptions = {
 
     // Handle redirects after sign in
     async redirect({ url, baseUrl }) {
-      // Mobile-specific URL handling
+      // Enhanced mobile-specific URL handling
       console.log("NextAuth redirect:", { url, baseUrl });
+      
+      // Normalize baseUrl to ensure it's properly formatted
+      const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
       
       // If url is relative, make it absolute
       if (url.startsWith("/")) {
-        url = baseUrl + url;
+        return normalizedBaseUrl + url;
+      }
+      
+      // Handle Google OAuth callback specifically for mobile
+      if (url.includes('/api/auth/callback/google')) {
+        console.log("Google OAuth callback detected:", url);
+        
+        // Check for error parameter first
+        try {
+          const urlObj = new URL(url);
+          const error = urlObj.searchParams.get('error');
+          if (error) {
+            console.log("OAuth error detected:", error);
+            return normalizedBaseUrl + '/authentication/error?error=' + error;
+          }
+        } catch (e) {
+          console.log("Could not parse OAuth URL:", e);
+        }
+        
+        // Default to home page for successful Google OAuth
+        return normalizedBaseUrl + '/';
       }
       
       // Handle common mobile redirect issues
       if (url.includes('payemt-checkout') || url.includes('payment-checkout')) {
-        return baseUrl + '/cart?checkout=true';
+        return normalizedBaseUrl + '/cart?checkout=true';
       }
       
-      // Handle callback URLs
+      // Handle callback URLs more robustly
       try {
         const parsedUrl = new URL(url);
         const callbackUrl = parsedUrl.searchParams.get('callbackUrl');
+        
         if (callbackUrl) {
+          // Decode the callback URL if it's encoded
+          const decodedCallbackUrl = decodeURIComponent(callbackUrl);
+          
           // Ensure callback URL is safe and valid
-          if (callbackUrl.startsWith('/')) {
-            return baseUrl + callbackUrl;
+          if (decodedCallbackUrl.startsWith('/')) {
+            return normalizedBaseUrl + decodedCallbackUrl;
           }
-          if (callbackUrl.startsWith(baseUrl)) {
-            return callbackUrl;
+          if (decodedCallbackUrl.startsWith(normalizedBaseUrl)) {
+            return decodedCallbackUrl;
+          }
+          
+          // If it's a valid relative path, use it
+          if (!decodedCallbackUrl.includes('://') && !decodedCallbackUrl.startsWith('//')) {
+            return normalizedBaseUrl + '/' + decodedCallbackUrl.replace(/^\/+/, '');
           }
         }
       } catch (e) {
-        // Invalid URL, fallback to cart
+        // Invalid URL, fallback to home
         console.error("Invalid redirect URL:", e);
       }
       
-      // Default redirects
-      if (url.startsWith(baseUrl)) {
+      // Handle same-origin URLs
+      if (url.startsWith(normalizedBaseUrl)) {
         return url;
       }
       
-      // Fallback to cart page for mobile users
-      return baseUrl + '/cart';
+      // Fallback to home page for safety
+      return normalizedBaseUrl + '/';
     },
   },
 
   pages: {
     signIn: '/authentication/login',
     error: '/authentication/error',
+  },
+
+  // Enhanced configuration for mobile compatibility
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  cookies: {
+    sessionToken: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        // Add domain for production
+        ...(process.env.NODE_ENV === 'production' && process.env.NEXTAUTH_URL && {
+          domain: new URL(process.env.NEXTAUTH_URL).hostname
+        })
+      }
+    }
   },
 
   debug: process.env.NODE_ENV === 'development',

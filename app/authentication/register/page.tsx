@@ -137,8 +137,26 @@ function RegistrationPage() {
       if (axios.isAxiosError(error) && error.response) {
         const status = error.response.status
         const respData: any = error.response.data
+        
         if (status === 409) {
-          setErrors({ email: 'An account with this email already exists' })
+          // Handle duplicate account errors
+          const errorMessage = respData?.error || 'Account already exists'
+          
+          if (errorMessage.includes('email')) {
+            setErrors({ 
+              email: 'This email is already registered.',
+              general: 'Already have an account? Try logging in instead.'
+            })
+          } else if (errorMessage.includes('phone')) {
+            setErrors({ 
+              phone: 'This phone number is already registered.',
+              general: 'Already have an account? Try logging in instead.'
+            })
+          } else {
+            setErrors({ 
+              general: errorMessage + ' Already have an account? Try logging in instead.'
+            })
+          }
         } else if (respData?.details) {
           const validationErrors: { [key: string]: string } = {}
           respData.details.forEach((errMsg: string) => {
@@ -146,6 +164,7 @@ function RegistrationPage() {
             if (errMsg.includes('password')) validationErrors.password = errMsg
             if (errMsg.includes('firstName')) validationErrors.firstName = errMsg
             if (errMsg.includes('lastName')) validationErrors.lastName = errMsg
+            if (errMsg.includes('phone')) validationErrors.phone = errMsg
           })
           setErrors(validationErrors)
         } else if (respData?.error) {
@@ -200,9 +219,23 @@ function RegistrationPage() {
 
           {/* General Error Message */}
           {errors.general && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0" />
-              <p className="text-red-800 text-sm">{errors.general}</p>
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center mb-2">
+                <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0" />
+                <p className="text-red-800 text-sm">{errors.general}</p>
+              </div>
+              {/* Show login link if it's a duplicate account error */}
+              {(errors.general.includes('already') || errors.general.includes('exists')) && (
+                <div className="mt-3 pt-3 border-t border-red-200">
+                  <Link 
+                    href="/authentication/login"
+                    className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Go to Login Page
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 

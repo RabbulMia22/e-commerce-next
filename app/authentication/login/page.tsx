@@ -106,10 +106,31 @@ function LoginPageContent() {
     setIsLoading(true)
     setError('')
     try {
-      await signIn('google', { callbackUrl })
+      // Enhanced mobile-compatible Google sign-in
+      const result = await signIn('google', { 
+        callbackUrl: callbackUrl || '/',
+        redirect: true
+      })
+      
+      // Handle potential errors
+      if (result?.error) {
+        throw new Error(result.error)
+      }
+      
+      // For mobile devices, add a small delay to ensure proper redirect
+      const isMobile = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
+      if (isMobile) {
+        setTimeout(() => {
+          if (!result?.url) {
+            // Fallback redirect for mobile
+            window.location.href = callbackUrl || '/'
+          }
+        }, 1000)
+      }
     } catch (err) {
+      console.error('Google sign-in error:', err)
       setIsLoading(false)
-      setError('Google sign-in failed. Please try again.')
+      setError('Google sign-in failed. Please try again or check your network connection.')
     }
   }
 

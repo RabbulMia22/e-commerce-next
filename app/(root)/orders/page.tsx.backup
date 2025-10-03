@@ -596,6 +596,95 @@ function OrdersPage() {
                 )
               })}
             </AnimatePresence>
+
+                {/* Order Items */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">Items</h4>
+                  <div className="space-y-3">
+                    {order.items.map((item, index) => (
+                      <div key={index} className="flex items-center space-x-4">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{item.title}</p>
+                          {item.brand && (
+                            <p className="text-sm text-gray-600">{item.brand}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-gray-900">
+                            {formatPrice(item.price)} × {item.quantity}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Order Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Shipping Address */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Shipping Address
+                    </h4>
+                    <div className="text-sm text-gray-600">
+                      <p className="font-medium">{order.shippingAddress.fullName}</p>
+                      <p>{order.shippingAddress.address}</p>
+                      <p>{order.shippingAddress.area}, {order.shippingAddress.district}</p>
+                      <p>{order.shippingAddress.division}</p>
+                      <p className="mt-2">Phone: {order.shippingAddress.phone}</p>
+                    </div>
+                  </div>
+
+                  {/* Payment Info */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Payment Information
+                    </h4>
+                    <div className="text-sm text-gray-600">
+                      <p>Method: {order.paymentInfo.method === 'sslcommerz' ? 'SSLCommerz' : 'Cash on Delivery'}</p>
+                      <p>Status: {order.paymentInfo.paymentStatus}</p>
+                      <p>Amount: {formatPrice(order.paymentInfo.amount)}</p>
+                      {order.estimatedDelivery && (
+                        <p className="mt-2">
+                          <Calendar className="w-4 h-4 inline mr-1" />
+                          Est. Delivery: {formatDate(order.estimatedDelivery)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Actions */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Details
+                    </button>
+                    {order.status === 'delivered' && (
+                      <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                        Track Package
+                      </button>
+                    )}
+                    {['pending', 'confirmed'].includes(order.status) && (
+                      <button className="inline-flex items-center px-4 py-2 border border-red-300 text-red-700 font-medium rounded-lg hover:bg-red-50 transition-colors">
+                        Cancel Order
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
