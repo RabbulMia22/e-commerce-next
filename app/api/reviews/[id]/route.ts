@@ -59,7 +59,7 @@ export async function PUT(
     const { rating, title, comment, images } = body
 
     // Get user
-    const user = await User.findOne({ email: session.user.email })
+    const user = await (User as any).findOne({ email: session.user.email })
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },

@@ -119,7 +119,7 @@ export async function POST(req: Request) {
 
     // Find user by email stored in value_a
     const userEmail = sslData.value_a;
-    const user = userEmail ? await User.findOne({ email: userEmail }) : null;
+    const user = userEmail ? await (User as any).findOne({ email: userEmail }) : null;
 
     if (!user) {
       console.error("User not found for SSL payment:", userEmail);

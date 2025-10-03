@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
     
     if (finalMeta?.orderId) {
       console.log("🔄 Looking up pending order by orderId:", finalMeta.orderId);
-      pendingOrder = await PendingOrder.findOne({ 
+      pendingOrder = await (PendingOrder as any).findOne({ 
         orderId: finalMeta.orderId,
         status: 'pending'
       });
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
     // Fallback: try to find by transaction ID only
     if (!pendingOrder && tran_id) {
       console.log("🔄 Looking up pending order by transactionId:", tran_id);
-      pendingOrder = await PendingOrder.findOne({ 
+      pendingOrder = await (PendingOrder as any).findOne({ 
         transactionId: tran_id,
         status: 'pending'
       });
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
     // Last resort: find the most recent pending order for the amount
     if (!pendingOrder && amount) {
       console.log("🔄 Looking up pending order by amount:", amount);
-      pendingOrder = await PendingOrder.findOne({ 
+      pendingOrder = await (PendingOrder as any).findOne({ 
         'pricing.totalAmount': parseFloat(amount),
         status: 'pending'
       }).sort({ createdAt: -1 });
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
       console.error("❌ No pending order found for transaction:", tran_id);
       
       // List all pending orders for debugging
-      const allPending = await PendingOrder.find({ status: 'pending' }).limit(5);
+      const allPending = await (PendingOrder as any).find({ status: 'pending' }).limit(5);
       console.log("🔄 Recent pending orders for debugging:", allPending.map(o => ({
         orderId: o.orderId,
         transactionId: o.transactionId,
@@ -219,7 +219,7 @@ export async function POST(req: NextRequest) {
     // Get product details for order items
     const validatedItems = [];
     for (const item of pendingOrder.items) {
-      const product = await Product.findById(item.product);
+      const product = await (Product as any).findById(item.product);
       
       if (!product) {
         console.error(`❌ Product not found: ${item.product}`);

@@ -193,7 +193,7 @@ export async function GET(req: NextRequest) {
       const query: any = {};
       if (status) query.orderStatus = status;
 
-      orders = await Order.find(query)
+      orders = await (Order as any).find(query)
         .populate('user', 'name email phone')
         .populate('items.product', 'title brand category images stock')
         .sort({ createdAt: -1 })
@@ -206,13 +206,13 @@ export async function GET(req: NextRequest) {
       const query: any = { user: userId };
       if (status) query.orderStatus = status;
 
-      orders = await Order.find(query)
+      orders = await (Order as any).find(query)
         .populate('items.product', 'title brand category images')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
 
-      totalOrders = await Order.countDocuments(query);
+      totalOrders = await (Order as any).countDocuments(query);
     }
 
     const totalPages = Math.ceil(totalOrders / limit);
