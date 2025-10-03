@@ -4,6 +4,7 @@ export { default as BannerGrid } from './BannerGrid';
 export { default as BannerModal } from './BannerModal';
 export { default as DashboardHome } from './DashboardHome';
 export { default as DragDropUpload } from './DragDropUpload';
+export { default as Footer } from './Footer';
 export { default as Navbar } from './Navbar';
 export { default as PageHeader } from './PageHeader';
 export { default as Pagination } from './Pagination';

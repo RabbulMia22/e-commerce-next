@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #f97316, #9333ea);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #ea580c, #7c3aed);
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 /* Line Clamp Utility */
 .line-clamp-1 {
   overflow: hidden;

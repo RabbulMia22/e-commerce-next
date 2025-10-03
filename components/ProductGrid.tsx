@@ -1,4 +1,5 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 import ProductShowcase from './ProductShowcase'
 
 interface IProduct {
@@ -37,18 +38,43 @@ function ProductGrid({ products }: ProductGridProps) {
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.9 },
+    visible: { opacity: 1, y: 0, scale: 1 }
+  }
+
   return (
     <div className="w-full">
-      {/* Mobile-Friendly Responsive Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {products.map((product) => (
-          <div key={product._id} className="flex">
+      {/* Mobile-Friendly Responsive Grid with Animations */}
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {products.map((product, index) => (
+          <motion.div 
+            key={product._id} 
+            className="flex"
+            variants={itemVariants}
+            whileHover={{ y: -5 }}
+            transition={{ duration: 0.3 }}
+          >
             <ProductShowcase product={product} />
-          </div>
+          </motion.div>
         ))}
-      </div>
-      
-      
+      </motion.div>
     </div>
   )
 }

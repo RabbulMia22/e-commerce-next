@@ -87,22 +87,63 @@ function AllProducts() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent mb-2">
+    <motion.div 
+      className="container mx-auto px-4 py-8"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      <motion.div 
+        className="text-center mb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        <motion.h2 
+          className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent mb-2"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
           Featured Products
-        </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
+        </motion.h2>
+        <motion.p 
+          className="text-gray-600 max-w-2xl mx-auto text-lg"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
           Discover our handpicked selection of premium products
-        </p>
-      </div>
-      <ProductGrid products={products || []} />
+        </motion.p>
+      </motion.div>
+      
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentPage}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
+        >
+          <ProductGrid products={products || []} />
+        </motion.div>
+      </AnimatePresence>
       
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="mt-12 flex flex-col items-center space-y-4">
+        <motion.div 
+          className="mt-12 flex flex-col items-center space-y-4"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
           {/* Page Navigation */}
-          <div className="flex items-center justify-center space-x-2">
+          <motion.div 
+            className="flex items-center justify-center space-x-2"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 1 }}
+          >
             {/* Previous Button */}
             <button
               onClick={goToPrevious}
@@ -151,12 +192,10 @@ function AllProducts() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-          </div>
-
-
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
