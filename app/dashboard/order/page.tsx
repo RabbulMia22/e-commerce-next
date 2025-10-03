@@ -399,9 +399,9 @@ function OrderPage() {
                         Customer Information
                       </h3>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <p><span className="font-medium">Name:</span> {selectedOrder.user?.name || 'N/A'}</p>
-                        <p><span className="font-medium">Email:</span> {selectedOrder.user?.email || 'N/A'}</p>
-                        <p><span className="font-medium">Phone:</span> {selectedOrder.shippingAddress.phone}</p>
+                        <p className='text-black'><span className="font-medium text-black">Name:</span> {selectedOrder.user?.name || 'N/A'}</p>
+                        <p className='text-black'><span className="font-medium text-black">Email:</span> {selectedOrder.user?.email || 'N/A'}</p>
+                        <p className='text-black'><span className="font-medium">Phone:</span> {selectedOrder.shippingAddress.phone}</p>
                       </div>
                     </div>
 
@@ -412,17 +412,17 @@ function OrderPage() {
                         Shipping Address
                       </h3>
                       <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <p><span className="font-medium">Full Name:</span> {selectedOrder.shippingAddress.fullName}</p>
-                        <p><span className="font-medium">Address:</span> {selectedOrder.shippingAddress.address}</p>
-                        <p><span className="font-medium">Area:</span> {selectedOrder.shippingAddress.area}</p>
-                        <p><span className="font-medium">District:</span> {selectedOrder.shippingAddress.district}</p>
-                        <p><span className="font-medium">Division:</span> {selectedOrder.shippingAddress.division}</p>
+                        <p className='text-black'><span className="font-medium">Full Name:</span> {selectedOrder.shippingAddress.fullName}</p>
+                        <p className='text-black'><span className="font-medium">Address:</span> {selectedOrder.shippingAddress.address}</p>
+                        <p className='text-black'><span className="font-medium">Area:</span> {selectedOrder.shippingAddress.area}</p>
+                        <p className='text-black'><span className="font-medium">District:</span> {selectedOrder.shippingAddress.district}</p>
+                        <p className='text-black'><span className="font-medium">Division:</span> {selectedOrder.shippingAddress.division}</p>
                         {selectedOrder.shippingAddress.postalCode && (
-                          <p><span className="font-medium">Postal Code:</span> {selectedOrder.shippingAddress.postalCode}</p>
+                          <p className='text-black'><span className="font-medium">Postal Code:</span> {selectedOrder.shippingAddress.postalCode}</p>
                         )}
-                        <p><span className="font-medium">Country:</span> {selectedOrder.shippingAddress.country}</p>
-                        <p><span className="font-medium">Delivery Type:</span> {selectedOrder.shippingAddress.deliveryType}</p>
-                        <p><span className="font-medium">Delivery Zone:</span> {selectedOrder.shippingAddress.deliveryZone}</p>
+                        <p className='text-black'><span className="font-medium">Country:</span> {selectedOrder.shippingAddress.country}</p>
+                        <p className='text-black'><span className="font-medium">Delivery Type:</span> {selectedOrder.shippingAddress.deliveryType}</p>
+                        <p className='text-black'><span className="font-medium">Delivery Zone:</span> {selectedOrder.shippingAddress.deliveryZone}</p>
                       </div>
                     </div>
                   </div>

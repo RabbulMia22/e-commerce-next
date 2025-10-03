@@ -17,6 +17,26 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ShopMate - Your Ultimate Shopping Destination",
   description: "Discover amazing products at unbeatable prices with ShopMate - Your trusted e-commerce platform",
+  icons: {
+    icon: [
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      },
+      {
+        url: '/shopmate-icon.svg',
+        type: 'image/svg+xml',
+        sizes: '32x32',
+      }
+    ],
+    apple: [
+      {
+        url: '/favicon.svg',
+        sizes: '180x180',
+        type: 'image/svg+xml',
+      }
+    ],
+  },
 };
 
 export default function RootLayout({

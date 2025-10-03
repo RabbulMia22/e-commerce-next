@@ -555,7 +555,7 @@ function RevenuePage() {
                 </tr>
               ) : (
                 recentTransactions.map((transaction, index) => (
-                  <tr key={transaction._id} className="hover:bg-gray-50">
+                  <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {transaction.paymentInfo?.method === 'sslcommerz' ? 'SSL' : 'ORD'}-{transaction._id?.slice(-8) || 'N/A'}
                     </td>
