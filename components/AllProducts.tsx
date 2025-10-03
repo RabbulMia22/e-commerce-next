@@ -2,6 +2,8 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import ProductGrid from "./ProductGrid";
 
 async function fetchProducts() {
@@ -15,13 +17,38 @@ async function fetchProducts() {
 }
 
 function AllProducts() {
-  const { data: products = [], isLoading, isError, error } = useQuery({
+  const [currentPage, setCurrentPage] = React.useState(0);
+  const productsPerPage = 12;
+
+  const { data: allProducts = [], isLoading, isError, error } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 3,
   });
-  // Limit to first 4 products for showcase
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(allProducts.length / productsPerPage);
+  const startIndex = currentPage * productsPerPage;
+  const endIndex = startIndex + productsPerPage;
+  const products = allProducts.slice(startIndex, endIndex);
+
+  // Pagination functions
+  const goToNext = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPrevious = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (pageIndex: number) => {
+    setCurrentPage(pageIndex);
+  };
  
 
   if (isLoading) {
@@ -70,6 +97,65 @@ function AllProducts() {
         </p>
       </div>
       <ProductGrid products={products || []} />
+      
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="mt-12 flex flex-col items-center space-y-4">
+          {/* Page Navigation */}
+          <div className="flex items-center justify-center space-x-2">
+            {/* Previous Button */}
+            <button
+              onClick={goToPrevious}
+              disabled={currentPage === 0}
+              className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                currentPage === 0
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:border-orange-300 hover:text-orange-600'
+              }`}
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToPage(index)}
+                  className={`w-10 h-10 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    currentPage === index
+                      ? 'bg-gradient-to-r from-orange-500 to-purple-600 text-white shadow-lg transform scale-105'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:border-orange-300 hover:text-orange-600'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={goToNext}
+              disabled={currentPage === totalPages - 1}
+              className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                currentPage === totalPages - 1
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:border-orange-300 hover:text-orange-600'
+              }`}
+            >
+              Next
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,10 @@ import { useQuery } from '@tanstack/react-query'
 import Image from 'next/image'
 import Link from 'next/link'
 import useBasketStore from '@/store/store'
-import { toast } from 'react-hot-toast' 
+import { toast } from 'react-hot-toast'
+import { FiEye, FiStar } from 'react-icons/fi'
+import { AiFillStar, AiOutlineStar } from 'react-icons/ai'
+import { Reviews } from '@/components'
 
 interface IProduct {
   _id: string;
@@ -35,7 +38,7 @@ interface ProductDetailsProps {
 export default function ProductDetails({ id }: ProductDetailsProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [selectedSize, setSelectedSize] = useState('') 
+  const [selectedSize, setSelectedSize] = useState('')
   const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   // Get cart functions from Zustand store
@@ -44,6 +47,17 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['product', id],
     queryFn: () => fetchProduct(id),
+    enabled: !!id,
+  })
+
+  // Fetch review statistics for dynamic rating
+  const { data: reviewStats } = useQuery({
+    queryKey: ['reviewStats', id],
+    queryFn: async () => {
+      const res = await fetch(`/api/reviews?productId=${id}&limit=1`)
+      if (!res.ok) return { averageRating: 0, totalReviews: 0 }
+      return res.json()
+    },
     enabled: !!id,
   })
 
@@ -85,10 +99,10 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
     }
 
     setIsAddingToCart(true)
-    
+
     try {
       const product = data.data
-      
+
       // Add items to cart one by one (since your store adds 1 at a time)
       for (let i = 0; i < quantity; i++) {
         addToBasket(product, selectedSize)
@@ -166,8 +180,8 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Product Not Found</h1>
           <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">The product you're looking for doesn't exist or has been removed.</p>
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors text-sm sm:text-base"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +196,7 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
 
   const product: IProduct = data.data
   const totalPrice = product.price * quantity
-  
+
   // Available sizes (you can customize this based on your product data)
   const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -229,11 +243,10 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                 <button
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
-                  className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImageIndex === index 
-                      ? 'border-orange-500 ring-2 ring-orange-200' 
+                  className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index
+                      ? 'border-orange-500 ring-2 ring-orange-200'
                       : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <Image
                     src={image}
@@ -263,32 +276,43 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
             {product.title}
           </h1>
 
-          {/* Rating */}
+          {/* Dynamic Rating from User Reviews */}
           <div className="flex items-center gap-2">
             <div className="flex items-center">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg
-                  key={i}
-                  className={`w-4 h-4 sm:w-5 sm:h-5 ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'}`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
+              {Array.from({ length: 5 }).map((_, i) => {
+                const dynamicRating = reviewStats?.averageRating || 0
+                const isFilled = i < Math.round(dynamicRating)
+
+                return (
+                  <div key={i} className="relative">
+                    {isFilled ? (
+                      <AiFillStar className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#FFD700' }} />
+                    ) : (
+                      <AiOutlineStar className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#FFD700' }} />
+                    )}
+                  </div>
+                )
+              })}
             </div>
-            <span className="text-gray-600 text-sm sm:text-base">({product.rating} out of 5)</span>
+            <span className="text-gray-600 text-sm sm:text-base">
+              ({reviewStats?.averageRating?.toFixed(1) || '0.0'} out of 5)
+            </span>
+
+            <Link href={`/review?productId=${product._id}`}>
+              <button className="text-gray-500 hover:text-gray-700 flex justify-center items-center gap-1 text-xl sm:text-base cursor-pointer">
+                <FiEye className="w-4 h-4" />
+                Review
+              </button>
+            </Link>
           </div>
 
           {/* Stock Status */}
           <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${
-              product.stock > 10 ? 'bg-green-400' : 
-              product.stock > 0 ? 'bg-yellow-400' : 'bg-red-400'
-            }`}></div>
-            <span className={`font-medium text-sm sm:text-base ${
-              product.stock > 0 ? 'text-green-600' : 'text-red-500'
-            }`}>
+            <div className={`w-3 h-3 rounded-full ${product.stock > 10 ? 'bg-green-400' :
+                product.stock > 0 ? 'bg-yellow-400' : 'bg-red-400'
+              }`}></div>
+            <span className={`font-medium text-sm sm:text-base ${product.stock > 0 ? 'text-green-600' : 'text-red-500'
+              }`}>
               {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
             </span>
           </div>
@@ -307,11 +331,10 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg border transition-all ${
-                    selectedSize === size
+                  className={`px-3 py-2 text-sm font-medium rounded-lg border transition-all ${selectedSize === size
                       ? 'bg-orange-500 text-white border-orange-500 shadow-md transform scale-105'
                       : 'bg-white text-gray-700 border-gray-300 hover:border-orange-300 hover:text-orange-600 hover:shadow-sm'
-                  }`}
+                    }`}
                 >
                   {size}
                 </button>
@@ -333,17 +356,16 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                   <button
                     onClick={handleQuantityDecrease}
                     disabled={quantity <= 1}
-                    className={`p-2 sm:p-3 transition-colors ${
-                      quantity <= 1 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    className={`p-2 sm:p-3 transition-colors ${quantity <= 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                    }`}
+                      }`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                     </svg>
                   </button>
-                  
+
                   <input
                     type="number"
                     min="1"
@@ -352,22 +374,21 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                     onChange={handleQuantityChange}
                     className="w-12 sm:w-16 px-2 sm:px-3 py-2 sm:py-3 text-center border-0 focus:outline-none focus:ring-0 bg-white text-sm sm:text-base"
                   />
-                  
+
                   <button
                     onClick={handleQuantityIncrease}
                     disabled={quantity >= product.stock}
-                    className={`p-2 sm:p-3 transition-colors ${
-                      quantity >= product.stock 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                    className={`p-2 sm:p-3 transition-colors ${quantity >= product.stock
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                    }`}
+                      }`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
                   </button>
                 </div>
-                
+
                 <span className="text-xs sm:text-sm text-gray-500">
                   {quantity >= product.stock ? 'Maximum quantity' : `${product.stock - quantity} remaining`}
                 </span>
@@ -418,7 +439,14 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
               </div>
               <div>
                 <span className="text-gray-600">Rating:</span>
-                <span className="ml-2 font-medium">{product.rating}/5</span>
+                <span className="ml-2 font-medium">
+                  {reviewStats?.averageRating?.toFixed(1) || '0.0'}/5
+                  {reviewStats?.pagination?.totalReviews > 0 && (
+                    <span className="text-gray-500 text-xs ml-1">
+                      ({reviewStats.pagination.totalReviews} reviews)
+                    </span>
+                  )}
+                </span>
               </div>
             </div>
           </div>
@@ -434,18 +462,17 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
               </button>
             </Link>
 
-            <button 
+            <button
               onClick={handleAddToCart}
               disabled={product.stock === 0 || isAddingToCart || !selectedSize}
-              className={`flex-1 px-4 py-2 sm:px-8 sm:py-3 font-medium rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base ${
-                product.stock === 0 
+              className={`flex-1 px-4 py-2 sm:px-8 sm:py-3 font-medium rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base ${product.stock === 0
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : !selectedSize
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : isAddingToCart
-                  ? 'bg-orange-400 text-white cursor-wait'
-                  : 'bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white hover:scale-105'
-              }`}
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : isAddingToCart
+                      ? 'bg-orange-400 text-white cursor-wait'
+                      : 'bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white hover:scale-105'
+                }`}
             >
               {isAddingToCart ? (
                 <div className="flex items-center gap-2">
@@ -458,19 +485,19 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5.5M7 13h10M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
                   </svg>
                   <span className="hidden sm:inline">
-                    {product.stock === 0 
-                      ? 'Out of Stock' 
-                      : !selectedSize 
-                      ? 'Select Size First' 
-                      : `Add ${quantity} to Cart`
+                    {product.stock === 0
+                      ? 'Out of Stock'
+                      : !selectedSize
+                        ? 'Select Size First'
+                        : `Add ${quantity} to Cart`
                     }
                   </span>
                   <span className="sm:hidden">
-                    {product.stock === 0 
-                      ? 'Out of Stock' 
-                      : !selectedSize 
-                      ? 'Select Size' 
-                      : 'Add to Cart'
+                    {product.stock === 0
+                      ? 'Out of Stock'
+                      : !selectedSize
+                        ? 'Select Size'
+                        : 'Add to Cart'
                     }
                   </span>
                 </>
@@ -487,6 +514,11 @@ export default function ProductDetails({ id }: ProductDetailsProps) {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Reviews Section - Below Add to Cart */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <Reviews productId={product._id} />
       </div>
     </div>
   )

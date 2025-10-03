@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+import Link from 'next/link';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   FiShoppingBag, 
   FiUsers, 
@@ -13,49 +15,40 @@ import {
   FiArrowDownRight
 } from 'react-icons/fi';
 
-// Mock data for the dashboard
-const stats = [
-  {
-    title: 'Total Revenue',
-    value: '$45,231.89',
-    change: '+20.1%',
-    trend: 'up',
-    icon: FiDollarSign,
-    color: 'bg-green-500'
-  },
-  {
-    title: 'Total Orders',
-    value: '2,345',
-    change: '+15.3%',
-    trend: 'up',
-    icon: FiShoppingCart,
-    color: 'bg-blue-500'
-  },
-  {
-    title: 'Total Products',
-    value: '1,234',
-    change: '+2.5%',
-    trend: 'up',
-    icon: FiPackage,
-    color: 'bg-purple-500'
-  },
-  {
-    title: 'Active Users',
-    value: '573',
-    change: '-0.5%',
-    trend: 'down',
-    icon: FiUsers,
-    color: 'bg-orange-500'
-  }
-];
+// Interface for dashboard stats
+interface DashboardStats {
+  totalRevenue: number
+  totalOrders: number
+  totalProducts: number
+  activeUsers: number
+  revenueGrowth: number
+  orderGrowth: number
+  productGrowth: number
+  userGrowth: number
+}
 
-const recentOrders = [
-  { id: '#3021', customer: 'John Doe', product: 'iPhone 14 Pro', amount: '$999.00', status: 'Completed', date: '2 min ago' },
-  { id: '#3020', customer: 'Jane Smith', product: 'MacBook Air', amount: '$1,299.00', status: 'Processing', date: '5 min ago' },
-  { id: '#3019', customer: 'Mike Johnson', product: 'AirPods Pro', amount: '$249.00', status: 'Shipped', date: '10 min ago' },
-  { id: '#3018', customer: 'Sarah Wilson', product: 'iPad Pro', amount: '$1,099.00', status: 'Completed', date: '15 min ago' },
-  { id: '#3017', customer: 'Tom Brown', product: 'Apple Watch', amount: '$399.00', status: 'Pending', date: '20 min ago' }
-];
+// Interface for Order data
+interface Order {
+  _id: string
+  orderNumber: string
+  user: {
+    _id: string
+    name: string
+    email: string
+  }
+  items: Array<{
+    _id: string
+    title: string
+    price: number
+    quantity: number
+    selectedSize: string
+    image: string
+  }>
+  orderStatus: string
+  totalAmount: number
+  createdAt: string
+  updatedAt: string
+}
 
 const topProducts = [
   { name: 'iPhone 14 Pro', sales: 234, revenue: '$233,400', growth: '+12%' },
@@ -66,15 +59,224 @@ const topProducts = [
 ];
 
 function DashboardHome() {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed': return 'bg-green-100 text-green-800';
-      case 'Processing': return 'bg-yellow-100 text-yellow-800';
-      case 'Shipped': return 'bg-blue-100 text-blue-800';
-      case 'Pending': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const [recentOrders, setRecentOrders] = useState<Order[]>([])
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    activeUsers: 0,
+    revenueGrowth: 0,
+    orderGrowth: 0,
+    productGrowth: 0,
+    userGrowth: 0
+  })
+  const [loading, setLoading] = useState(true)
+
+  // Fetch all dashboard data
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true)
+      // Fetch all data in parallel
+      await Promise.all([
+        fetchRecentOrders(),
+        fetchStats()
+      ])
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
+
+  const fetchStats = async () => {
+    try {
+      // Fetch orders for revenue and order count
+      const ordersResponse = await axios.get('/api/order', {
+        params: { limit: '1000' }, // Get more orders for accurate calculations
+        withCredentials: true
+      })
+
+      // Fetch products for product count - try different approaches
+      let productsResponse;
+      try {
+        productsResponse = await axios.get('/api/products', {
+          params: { limit: '1000' }, // Add limit parameter like orders
+          withCredentials: true
+        })
+      } catch (productError) {
+        console.log('First products fetch failed, trying without params...')
+        productsResponse = await axios.get('/api/products', {
+          withCredentials: true
+        })
+      }
+
+      console.log('Products Response Full:', productsResponse) // Debug log
+      console.log('Products Response Data:', productsResponse.data) // Debug log
+
+      const orders = ordersResponse.data?.orders || []
+      
+      // Check multiple possible response structures for products
+      let products = [];
+      if (Array.isArray(productsResponse.data)) {
+        products = productsResponse.data;
+      } else if (productsResponse.data?.products && Array.isArray(productsResponse.data.products)) {
+        products = productsResponse.data.products;
+      } else if (productsResponse.data?.data && Array.isArray(productsResponse.data.data)) {
+        products = productsResponse.data.data;
+      } else {
+        console.log('Products response structure not recognized:', typeof productsResponse.data)
+        products = [];
+      }
+
+      console.log('Products Array:', products) // Debug log
+      console.log('Products Count:', products.length)
+
+      // Calculate revenue metrics
+      calculateDashboardStats(orders, products)
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+      if (axios.isAxiosError(error)) {
+        console.error('Products API Error:', error.response?.data)
+      }
+    }
+  }
+
+  const calculateDashboardStats = (orders: Order[], products: any[]) => {
+    // Ensure products is an array and log for debugging
+    const productsArray = Array.isArray(products) ? products : []
+    console.log('Final Products Array in calculateDashboardStats:', productsArray)
+    console.log('Products Count in calculateDashboardStats:', productsArray.length)
+
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
+
+    // Ensure orders is an array
+    const ordersArray = Array.isArray(orders) ? orders : []
+
+    // Filter completed orders only
+    const completedOrders = ordersArray.filter(order => 
+      order?.orderStatus === 'delivered' || 
+      (order as any)?.paymentInfo?.paymentStatus === 'completed'
+    )
+
+    // Calculate total revenue
+    const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+
+    // Calculate growth metrics
+    const last30DaysOrders = completedOrders.filter(order => 
+      new Date(order.createdAt) >= thirtyDaysAgo
+    )
+    const previous30DaysOrders = completedOrders.filter(order => {
+      const orderDate = new Date(order.createdAt)
+      return orderDate >= sixtyDaysAgo && orderDate < thirtyDaysAgo
+    })
+
+    const last30DaysRevenue = last30DaysOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+    const previous30DaysRevenue = previous30DaysOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+
+    // Calculate growth percentages
+    const revenueGrowth = previous30DaysRevenue > 0 
+      ? ((last30DaysRevenue - previous30DaysRevenue) / previous30DaysRevenue) * 100 
+      : 0
+
+    const orderGrowth = previous30DaysOrders.length > 0
+      ? ((last30DaysOrders.length - previous30DaysOrders.length) / previous30DaysOrders.length) * 100
+      : 0
+
+    // Get unique users (simplified - count unique user emails from orders)
+    const uniqueUsers = new Set(ordersArray.map(order => order.user?.email).filter(Boolean))
+
+    const statsToSet = {
+      totalRevenue,
+      totalOrders: completedOrders.length,
+      totalProducts: productsArray.length,
+      activeUsers: uniqueUsers.size,
+      revenueGrowth,
+      orderGrowth,
+      productGrowth: 0, // You can calculate this if you have historical product data
+      userGrowth: 0 // You can calculate this if you have user registration dates
+    }
+
+    console.log('Setting Dashboard Stats:', statsToSet) // Debug log
+
+    setDashboardStats(statsToSet)
+  }
+
+  const fetchRecentOrders = async () => {
+    try {
+      setLoading(true)
+      const response = await axios.get('/api/order', {
+        params: {
+          page: '1',
+          limit: '5', // Only get 5 recent orders for dashboard
+        },
+        withCredentials: true
+      })
+
+      if (response.data) {
+        setRecentOrders(response.data.orders || [])
+      }
+    } catch (error) {
+      console.error('Error fetching recent orders:', error)
+      setRecentOrders([]) // Set empty array on error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    if (!status) return 'bg-gray-100 text-gray-800'
+    
+    switch (status.toLowerCase()) {
+      case 'delivered':
+      case 'completed': 
+        return 'bg-green-100 text-green-800'
+      case 'processing': 
+        return 'bg-yellow-100 text-yellow-800'
+      case 'shipped': 
+        return 'bg-blue-100 text-blue-800'
+      case 'pending': 
+        return 'bg-gray-100 text-gray-800'
+      case 'cancelled': 
+        return 'bg-red-100 text-red-800'
+      default: 
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-BD', {
+      style: 'currency',
+      currency: 'BDT'
+    }).format(price)
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 60) {
+      return `${diffMins} min${diffMins !== 1 ? 's' : ''} ago`
+    } else if (diffHours < 24) {
+      return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`
+    } else if (diffDays < 7) {
+      return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`
+    } else {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      })
+    }
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -86,32 +288,100 @@ function DashboardHome() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
-                <div className="flex items-center mt-2">
-                  {stat.trend === 'up' ? (
-                    <FiArrowUpRight className="text-green-500 w-4 h-4" />
-                  ) : (
-                    <FiArrowDownRight className="text-red-500 w-4 h-4" />
-                  )}
-                  <span className={`text-sm font-medium ml-1 ${
-                    stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {stat.change}
-                  </span>
-                  <span className="text-gray-500 text-sm ml-1">from last month</span>
-                </div>
-              </div>
-              <div className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center`}>
-                <stat.icon className="w-6 h-6 text-white" />
+        {/* Total Revenue */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <Link href="/dashboard/revenue" className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900 mt-2">{formatPrice(dashboardStats.totalRevenue || 0)}</p>
+              <div className="flex items-center mt-2">
+                {(dashboardStats.revenueGrowth || 0) >= 0 ? (
+                  <FiArrowUpRight className="text-green-500 w-4 h-4" />
+                ) : (
+                  <FiArrowDownRight className="text-red-500 w-4 h-4" />
+                )}
+                <span className={`text-sm font-medium ml-1 ${
+                  (dashboardStats.revenueGrowth || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(dashboardStats.revenueGrowth || 0) >= 0 ? '+' : ''}{Math.abs(dashboardStats.revenueGrowth || 0).toFixed(1)}%
+                </span>
+                <span className="text-gray-500 text-sm ml-1">from last month</span>
               </div>
             </div>
+            <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center">
+              <FiDollarSign className="w-6 h-6 text-white" />
+            </div>
+          </Link>
+        </div>
+
+        {/* Total Orders */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <Link href="/dashboard/order" className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Orders</p>
+              <p className="text-2xl font-bold text-gray-900 mt-2">{(dashboardStats.totalOrders || 0).toLocaleString()}</p>
+              <div className="flex items-center mt-2">
+                {(dashboardStats.orderGrowth || 0) >= 0 ? (
+                  <FiArrowUpRight className="text-green-500 w-4 h-4" />
+                ) : (
+                  <FiArrowDownRight className="text-red-500 w-4 h-4" />
+                )}
+                <span className={`text-sm font-medium ml-1 ${
+                  (dashboardStats.orderGrowth || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(dashboardStats.orderGrowth || 0) >= 0 ? '+' : ''}{Math.abs(dashboardStats.orderGrowth || 0).toFixed(1)}%
+                </span>
+                <span className="text-gray-500 text-sm ml-1">from last month</span>
+              </div>
+            </div>
+            <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center">
+              <FiShoppingCart className="w-6 h-6 text-white" />
+            </div>
+          </Link>
+        </div>
+
+        {/* Total Products */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <Link href="/dashboard/products" className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Products</p>
+              <p className="text-2xl font-bold text-gray-900 mt-2">{(dashboardStats.totalProducts || 0).toLocaleString()}</p>
+              <div className="flex items-center mt-2">
+                {(dashboardStats.productGrowth || 0) >= 0 ? (
+                  <FiArrowUpRight className="text-green-500 w-4 h-4" />
+                ) : (
+                  <FiArrowDownRight className="text-red-500 w-4 h-4" />
+                )}
+                <span className={`text-sm font-medium ml-1 ${
+                  (dashboardStats.productGrowth || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {(dashboardStats.productGrowth || 0) >= 0 ? '+' : ''}{Math.abs(dashboardStats.productGrowth || 0).toFixed(1)}%
+                </span>
+                <span className="text-gray-500 text-sm ml-1">in catalog</span>
+              </div>
+            </div>
+            <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
+              <FiPackage className="w-6 h-6 text-white" />
+            </div>
+          </Link>
+        </div>
+
+        {/* Active Users */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Customers</p>
+              <p className="text-2xl font-bold text-gray-900 mt-2">{(dashboardStats.activeUsers || 0).toLocaleString()}</p>
+              <div className="flex items-center mt-2">
+                <FiUsers className="text-orange-500 w-4 h-4" />
+                <span className="text-gray-500 text-sm ml-1">unique customers</span>
+              </div>
+            </div>
+            <div className="w-12 h-12 rounded-lg bg-orange-500 flex items-center justify-center">
+              <FiUsers className="w-6 h-6 text-white" />
+            </div>
           </div>
-        ))}
+        </div>
       </div>
 
       {/* Main Content Grid */}
@@ -123,9 +393,12 @@ function DashboardHome() {
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">Recent Orders</h2>
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                <Link 
+                  href="/dashboard/order" 
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+                >
                   View All
-                </button>
+                </Link>
               </div>
             </div>
             <div className="p-0">
@@ -151,27 +424,47 @@ function DashboardHome() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentOrders.map((order, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {order.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {order.customer}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {order.product}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {order.amount}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                            {order.status}
-                          </span>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center">
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                            <span className="ml-2 text-gray-500">Loading recent orders...</span>
+                          </div>
                         </td>
                       </tr>
-                    ))}
+                    ) : recentOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                          No recent orders found
+                        </td>
+                      </tr>
+                    ) : (
+                      recentOrders.map((order, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            #{order.orderNumber}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {order.user?.name || 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {order.items.length > 0 
+                              ? order.items[0].title + (order.items.length > 1 ? ` +${order.items.length - 1} more` : '')
+                              : 'No items'
+                            }
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {formatPrice(order.totalAmount)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.orderStatus)}`}>
+                              {order.orderStatus}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

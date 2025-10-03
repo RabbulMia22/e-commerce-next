@@ -9,6 +9,8 @@ export interface IProduct extends Document {
   images: string[];
   stock: number;
   rating: number;
+  averageRating: number;
+  totalReviews: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +24,8 @@ const ProductSchema: Schema<IProduct> = new Schema({
   images: [{ type: String }],
   stock: { type: Number, required: true, default: 0 },
   rating: { type: Number, default: 0, min: 0, max: 5 },
+  averageRating: { type: Number, default: 0, min: 0, max: 5 },
+  totalReviews: { type: Number, default: 0, min: 0 },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
