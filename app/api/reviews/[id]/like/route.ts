@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import connectMongoDB from '@/lib/db'
 import Review from '@/models/review'
 import User from '@/models/user'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { getSessionSafely } from '@/lib/session'
 
 // POST /api/reviews/[id]/like - Toggle like on a review
 export async function POST(
@@ -12,7 +11,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const session = await getServerSession(authOptions)
+  const session = await getSessionSafely()
     
     if (!session || !session.user?.email) {
       return NextResponse.json(

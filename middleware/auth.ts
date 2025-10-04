@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { authSecret } from "@/lib/authSecret";
 
 export async function middleware(req: any) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({ req, secret: authSecret });
     console.log("MIDDLEWARE TOKEN:", token);
   // Not logged in
   if (!token) {

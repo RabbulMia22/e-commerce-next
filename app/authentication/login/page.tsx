@@ -105,48 +105,19 @@ function LoginPageContent() {
     
     setIsLoading(true)
     setError('')
-    
+
     try {
       console.log('Starting Google sign-in process...')
-      const isMobile = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
-      
-      // Enhanced mobile-compatible Google sign-in
-      const result = await signIn('google', { 
-        callbackUrl: callbackUrl || '/',
-        redirect: false  // Handle redirect manually for better control
+      await signIn('google', {
+        redirect: true,
+        redirectTo: callbackUrl || '/',
       })
-      
-      console.log('Google sign-in result:', result)
-      
-      // Handle the result
-      if (result?.error) {
-        throw new Error(result.error)
-      }
-      
-      if (result?.url) {
-        console.log('Google sign-in successful, redirecting...')
 
-        const redirectUrl = result.url || callbackUrl || '/'
-
-        setIsLoading(false)
-
-        if (isMobile) {
-          setTimeout(() => {
-            console.log('Mobile redirect to:', redirectUrl)
-            window.location.href = redirectUrl
-          }, 500)
-        } else {
-          router.push(redirectUrl)
-        }
-        return
-      }
-
-      throw new Error('No redirect URL returned from Google sign-in')
-      
+      // In rare cases where the redirect is blocked, navigate manually
+      router.push(callbackUrl || '/')
     } catch (err) {
       console.error('Google sign-in error:', err)
-      setIsLoading(false)
-      
+
       // Enhanced error handling for OAuth access denied
       if (err instanceof Error) {
         if (err.message.includes('access_denied') || err.message.includes('Access denied')) {
@@ -159,6 +130,8 @@ function LoginPageContent() {
       } else {
         setError('Google sign-in failed. Please try again. If you\'re on mobile, try clearing your browser cache.')
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 

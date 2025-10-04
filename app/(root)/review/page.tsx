@@ -1,20 +1,11 @@
 "use client";
-import React, { useState, Suspense } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { Star, X, ImageIcon } from 'lucide-react';
-import Image from 'next/image';
-import { useSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import axios from 'axios';
 
-// Create axios instance with default config
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL || '',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true,
-});
+import React, { Suspense, useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { ImageIcon, Star } from "lucide-react";
+import Image from "next/image";
+import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface ReviewFormData {
   userName: string;
@@ -24,268 +15,199 @@ interface ReviewFormData {
   images: File[];
 }
 
-interface CloudinaryResponse {
-  secure_url: string;
-  public_id: string;
-}
-
 function ReviewPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const productId = searchParams.get('productId');
+  const productId = searchParams.get("productId");
 
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadingImages, setUploadingImages] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<ReviewFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = useForm<ReviewFormData>({
     defaultValues: {
-      userName: session?.user?.name || '',
+      userName: session?.user?.name ?? "",
       rating: 0,
-      title: '',
-      comment: '',
+      title: "",
+      comment: "",
       images: [],
     },
   });
 
-  // Cloudinary upload function
-  const uploadImagesToCloudinary = async (images: File[]): Promise<string[]> => {
-    const uploadedUrls: string[] = [];
-    
-    for (const image of images) {
-      const formData = new FormData();
-      formData.append('file', image);
-      formData.append('upload_preset', 'your_upload_preset'); // Replace with your Cloudinary preset
-      
-      try {
-        const response = await axios.post(
-          `https://api.cloudinary.com/v1_1/your_cloud_name/image/upload`, // Replace with your Cloudinary cloud name
-          formData
-        );
-        uploadedUrls.push(response.data.secure_url);
-      } catch (error) {
-        console.error('Error uploading image:', error);
-      }
+  const onSubmit: SubmitHandler<ReviewFormData> = async (formValues) => {
+    if (status !== "authenticated" || !session?.user?.email) {
+      setFormError("Please login to submit a review.");
+      router.push("/authentication/login");
+      return;
     }
-    
-    return uploadedUrls;
-  };
 
-  const onSubmit: SubmitHandler<ReviewFormData> = async (data) => {
-    // Debug session information
-      console.log('=== AUTHENTICATION DEBUG ===');
-      console.log('Session status:', status);
-      console.log('Session data:', session);
-      console.log('User email:', session?.user?.email);
-      console.log('Product ID:', productId);
+    if (!productId) {
+      setFormError("Product ID is required. Please select a product first.");
+      return;
+    }
 
-      // Check if user is authenticated
-      if (status !== 'authenticated' || !session?.user?.email) {
-        alert('Please login to submit a review');
-        router.push('/authentication/login');
+    if (rating === 0) {
+      setFormError("Please select a star rating before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormError(null);
+    setFormSuccess(null);
+
+    try {
+      const hasImages = selectedImages.length > 0;
+      let response: Response;
+
+      if (hasImages) {
+        const multipart = new FormData();
+        multipart.append("productId", productId);
+        multipart.append("rating", rating.toString());
+        multipart.append("title", formValues.title.trim());
+        multipart.append("comment", formValues.comment.trim());
+        selectedImages.forEach((image) => multipart.append("images", image));
+
+        response = await fetch("/api/reviews", {
+          method: "POST",
+          body: multipart,
+          credentials: "include",
+        });
+      } else {
+        const payload = {
+          productId,
+          rating,
+          title: formValues.title.trim(),
+          comment: formValues.comment.trim(),
+        };
+
+        response = await fetch("/api/reviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        });
+      }
+
+      if (response.status === 401) {
+        setFormError("Authentication failed. Please login again.");
+        router.push("/authentication/login");
         return;
       }
 
-      // Test API endpoint before submitting review
-      try {
-        console.log('Testing authentication with API...');
-        const testResponse = await apiClient.get('/api/auth/session');
-        console.log('Auth test response:', testResponse.data);
-      } catch (authError) {
-        console.error('Authentication test failed:', authError);
-      }    // Check if productId exists
-    if (!productId) {
-      alert('Product ID is required. Please select a product first.');
-      return;
-    }
+      const result = await response.json().catch(() => null);
 
-    // Check if rating is selected
-    if (rating === 0) {
-      alert('Please select a star rating before submitting.');
-      return;
-    }
-
-    console.log('✅ All validation checks passed');
-
-    try {
-      setIsSubmitting(true);
-      setUploadingImages(true);
-
-      // Images will be uploaded by the backend middleware
-      setUploadingImages(false);
-
-      // Prepare review data - use FormData if images are included
-      let reviewPayload: FormData | any;
-      
-      if (selectedImages.length > 0) {
-        // Use FormData for requests with images
-        console.log(`📸 Preparing FormData with ${selectedImages.length} images`);
-        console.log('📋 Form data values:');
-        console.log('  - productId:', productId);
-        console.log('  - rating:', rating);
-        console.log('  - title:', data.title.trim());
-        console.log('  - comment:', data.comment.trim());
-        
-        const formData = new FormData();
-        formData.append('productId', productId);
-        formData.append('rating', rating.toString());
-        formData.append('title', data.title.trim());
-        formData.append('comment', data.comment.trim());
-        
-        // Add all image files
-        selectedImages.forEach((image, index) => {
-          formData.append('images', image);
-          console.log(`Adding image ${index + 1}: ${image.name}`);
-        });
-        
-        reviewPayload = formData;
-      } else {
-        // Use JSON for requests without images
-        console.log('📝 Preparing JSON data (no images)');
-        console.log('📋 JSON data values:');
-        console.log('  - productId:', productId);
-        console.log('  - rating:', rating);
-        console.log('  - title:', data.title.trim());
-        console.log('  - comment:', data.comment.trim());
-        
-        reviewPayload = {
-          productId,
-          rating,
-          title: data.title.trim(),
-          comment: data.comment.trim(),
-        };
-      }
-
-      console.log('Review payload type:', selectedImages.length > 0 ? 'FormData' : 'JSON');
-
-      // Submit review to backend API with session token
-      const config = selectedImages.length > 0 ? {
-        headers: {
-          // Don't set Content-Type for FormData, let browser set it with boundary
-        },
-        withCredentials: true
-      } : {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        withCredentials: true
-      };
-
-      console.log('🚀 Sending request with config:', config);
-      const response = await axios.post('/api/reviews', reviewPayload, config);
-
-      if (response.data.success) {
-        alert('Review submitted successfully!');
-        
-        // Reset form
+      if (response.ok && result?.success) {
+        setFormSuccess("Review submitted successfully!");
         reset();
         setRating(0);
+        setValue("rating", 0);
         setImagePreviews([]);
         setSelectedImages([]);
-        
-        // Redirect to product page or reviews page
         router.push(`/product/${productId}`);
       } else {
-        alert(response.data.error || 'Failed to submit review');
+        const message = result?.error || "Failed to submit review. Please try again.";
+        setFormError(message);
       }
-    } catch (error: any) {
-      console.error('Error submitting review:', error);
-      console.log('Full error response:', error.response);
-      
-      if (error.response?.status === 401) {
-        alert('Authentication failed. Please login again.');
-        router.push('/authentication/login');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setFormError(error.message);
       } else {
-        alert(error.response?.data?.error || 'Failed to submit review. Please try again.');
+        setFormError("Failed to submit review. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
-      setUploadingImages(false);
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+
     if (selectedImages.length + files.length > 10) {
-      alert('Maximum 10 images allowed');
+      setFormError("Maximum 10 images allowed.");
       return;
     }
 
-    // Create previews
     const newPreviews: string[] = [];
-    files.forEach(file => {
+    files.forEach((file) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        newPreviews.push(e.target?.result as string);
-        if (newPreviews.length === files.length) {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
+      reader.onload = (readerEvent) => {
+        const result = readerEvent.target?.result;
+        if (typeof result === "string") {
+          newPreviews.push(result);
+          if (newPreviews.length === files.length) {
+            setImagePreviews((prev) => [...prev, ...newPreviews]);
+          }
         }
       };
       reader.readAsDataURL(file);
     });
 
-    setSelectedImages(prev => [...prev, ...files]);
-    setValue('images', [...selectedImages, ...files]);
+    const updatedImages = [...selectedImages, ...files];
+    setSelectedImages(updatedImages);
+    setValue("images", updatedImages);
   };
 
   const removeImage = (index: number) => {
-    const newImages = selectedImages.filter((_, i) => i !== index);
-    const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    
-    setSelectedImages(newImages);
-    setImagePreviews(newPreviews);
-    setValue('images', newImages);
+    const updatedImages = selectedImages.filter((_, idx) => idx !== index);
+    const updatedPreviews = imagePreviews.filter((_, idx) => idx !== index);
+
+    setSelectedImages(updatedImages);
+    setImagePreviews(updatedPreviews);
+    setValue("images", updatedImages);
   };
 
-  const renderStars = () => {
-    return (
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => {
-          const filled = star <= (hoverRating || rating);
-          return (
-            <Star
-              key={star}
-              className={`w-8 h-8 cursor-pointer transition-colors ${
-                filled ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300 hover:text-yellow-400'
-              }`}
-              onClick={() => {
-                setRating(star);
-                setValue('rating', star);
-              }}
-              onMouseEnter={() => setHoverRating(star)}
-              onMouseLeave={() => setHoverRating(0)}
-            />
-          );
-        })}
-        <span className="ml-2 text-sm text-gray-600">
-          {rating > 0 && `${rating} star${rating > 1 ? 's' : ''}`}
-        </span>
-      </div>
-    );
-  };
+  const renderStars = () => (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => {
+        const filled = star <= (hoverRating || rating);
+        return (
+          <Star
+            key={star}
+            className={`w-8 h-8 cursor-pointer transition-colors ${
+              filled ? "fill-yellow-400 text-yellow-400" : "text-gray-300 hover:text-yellow-400"
+            }`}
+            onClick={() => {
+              setRating(star);
+              setValue("rating", star);
+            }}
+            onMouseEnter={() => setHoverRating(star)}
+            onMouseLeave={() => setHoverRating(0)}
+          />
+        );
+      })}
+      <span className="ml-2 text-sm text-gray-600">
+        {rating > 0 && `${rating} star${rating > 1 ? "s" : ""}`}
+      </span>
+    </div>
+  );
 
-  // Check authentication
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
       </div>
     );
   }
 
-  if (status === 'unauthenticated') {
+  if (status === "unauthenticated") {
     return (
-      <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-4 text-center text-black">Authentication Required</h1>
-        <p className="text-center text-gray-600 mb-4">Please login to post a review.</p>
+      <div className="mx-auto mt-8 max-w-md rounded-lg bg-white p-6 shadow-md">
+        <h1 className="mb-4 text-center text-2xl font-bold text-black">Authentication Required</h1>
+        <p className="mb-4 text-center text-gray-600">Please login to post a review.</p>
         <button
-          onClick={() => router.push('/authentication/login')}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          onClick={() => router.push("/authentication/login")}
+          className="w-full rounded-md bg-blue-600 py-2 px-4 text-white transition-colors hover:bg-blue-700"
         >
           Go to Login
         </button>
@@ -293,50 +215,46 @@ function ReviewPageContent() {
     );
   }
 
- 
-
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center text-black">Post Product Review</h1>
-      
-      {/* Debug Authentication Info */}
-      <div className="mb-4 p-3 bg-gray-100 rounded text-xs">
-        <p><strong>Auth Status:</strong> {status}</p>
-        <p><strong>User:</strong> {session?.user?.name || 'Not logged in'}</p>
-        <p><strong>Email:</strong> {session?.user?.email || 'No email'}</p>
-        <p><strong>Product ID:</strong> {productId || 'No product ID'}</p>
-      </div>
+    <div className="mx-auto mt-8 max-w-md rounded-lg bg-white p-6 shadow-md">
+      <h1 className="mb-6 text-center text-2xl font-bold text-black">Post Product Review</h1>
+
+      {formError && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+          {formError}
+        </div>
+      )}
+
+      {formSuccess && (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700" role="status">
+          {formSuccess}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* User Name Field */}
         <div>
-          <label htmlFor="userName" className="block text-sm font-medium text-black mb-2">
+          <label htmlFor="userName" className="mb-2 block text-sm font-medium text-black">
             User Name
           </label>
           <input
             id="userName"
             type="text"
             placeholder="Enter your name"
-            defaultValue={session?.user?.name || ''}
-            {...register('userName', { 
-              required: 'User name is required',
-              minLength: { value: 2, message: 'Name must be at least 2 characters' }
+            {...register("userName", {
+              required: "User name is required",
+              minLength: { value: 2, message: "Name must be at least 2 characters" },
             })}
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            style={{ color: 'black' }}
+            className="w-full rounded-md border border-gray-300 p-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.userName && <p className="mt-1 text-sm text-red-600">{errors.userName.message}</p>}
         </div>
 
-        {/* Star Rating Field */}
         <div>
-          <label className="block text-sm font-medium text-black mb-2">
-            Rating (Click stars to rate)
-          </label>
+          <label className="mb-2 block text-sm font-medium text-black">Rating (Click stars to rate)</label>
           <input
-            {...register('rating', { 
-              required: 'Please select a rating',
-              min: { value: 1, message: 'Please select at least 1 star' }
+            {...register("rating", {
+              required: "Please select a rating",
+              min: { value: 1, message: "Please select at least 1 star" },
             })}
             type="hidden"
           />
@@ -344,50 +262,45 @@ function ReviewPageContent() {
           {errors.rating && <p className="mt-1 text-sm text-red-600">{errors.rating.message}</p>}
         </div>
 
-        {/* Title Field */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-black mb-2">
+          <label htmlFor="title" className="mb-2 block text-sm font-medium text-black">
             Review Title
           </label>
           <input
             id="title"
             type="text"
             placeholder="e.g., Great product!"
-            {...register('title', { 
-              required: 'Title is required',
-              minLength: { value: 3, message: 'Title must be at least 3 characters' }
+            {...register("title", {
+              required: "Title is required",
+              minLength: { value: 3, message: "Title must be at least 3 characters" },
             })}
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            style={{ color: 'black' }}
+            className="w-full rounded-md border border-gray-300 p-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
         </div>
 
-        {/* Comment Field */}
         <div>
-          <label htmlFor="comment" className="block text-sm font-medium text-black mb-2">
+          <label htmlFor="comment" className="mb-2 block text-sm font-medium text-black">
             Your Review Comment
           </label>
           <textarea
             id="comment"
             rows={4}
             placeholder="Share your thoughts about the product..."
-            {...register('comment', { 
-              required: 'Review comment is required',
-              minLength: { value: 10, message: 'Comment must be at least 10 characters' }
+            {...register("comment", {
+              required: "Review comment is required",
+              minLength: { value: 10, message: "Comment must be at least 10 characters" },
             })}
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-black"
-            style={{ color: 'black' }}
+            className="w-full resize-none rounded-md border border-gray-300 p-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.comment && <p className="mt-1 text-sm text-red-600">{errors.comment.message}</p>}
         </div>
 
-        {/* Product Images Upload */}
         <div>
-          <label className="block text-sm font-medium text-black mb-2">
+          <label className="mb-2 block text-sm font-medium text-black">
             Product Images (Optional - Max 10 images)
           </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-md p-4 text-center">
+          <div className="rounded-md border-2 border-dashed border-gray-300 p-4 text-center">
             <input
               type="file"
               accept="image/*"
@@ -396,31 +309,22 @@ function ReviewPageContent() {
               className="hidden"
               id="image-upload"
             />
-            <label
-              htmlFor="image-upload"
-              className="cursor-pointer flex flex-col items-center text-black"
-            >
-              <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
-              <span className="text-sm text-black">Click to upload product images</span>
-              <span className="text-xs text-gray-500 mt-1">JPEG, PNG, GIF up to 5MB each</span>
+            <label htmlFor="image-upload" className="flex cursor-pointer flex-col items-center text-black">
+              <ImageIcon className="mb-2 h-8 w-8 text-gray-400" />
+              <span className="text-sm">Click to upload product images</span>
+              <span className="mt-1 text-xs text-gray-500">JPEG, PNG, GIF up to 5MB each</span>
             </label>
           </div>
-          
-          {/* Image Previews */}
+
           {imagePreviews.length > 0 && (
-            <div className="grid grid-cols-4 gap-2 mt-3">
+            <div className="mt-3 grid grid-cols-4 gap-2">
               {imagePreviews.map((src, idx) => (
                 <div key={idx} className="relative h-20">
-                  <Image 
-                    src={src} 
-                    alt={`Preview ${idx + 1}`} 
-                    fill 
-                    className="object-cover rounded border" 
-                  />
+                  <Image src={src} alt={`Preview ${idx + 1}`} fill className="rounded border object-cover" />
                   <button
                     type="button"
                     onClick={() => removeImage(idx)}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                    className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white hover:bg-red-600"
                   >
                     ×
                   </button>
@@ -428,29 +332,22 @@ function ReviewPageContent() {
               ))}
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            {selectedImages.length}/10 images selected
-          </p>
+
+          <p className="mt-1 text-xs text-gray-500">{selectedImages.length}/10 images selected</p>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSubmitting || uploadingImages}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          disabled={isSubmitting}
+          className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 py-3 px-4 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {uploadingImages ? (
+          {isSubmitting ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Uploading Images...
-            </>
-          ) : isSubmitting ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
               Submitting Review...
             </>
           ) : (
-            'Post Review'
+            "Post Review"
           )}
         </button>
       </form>
@@ -460,8 +357,8 @@ function ReviewPageContent() {
 
 export default function ReviewPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
       <ReviewPageContent />
     </Suspense>
-  )
+  );
 }

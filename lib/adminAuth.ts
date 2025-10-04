@@ -2,11 +2,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || "supersecret";
+import { authSecret } from "@/lib/authSecret";
 
 export default async function requireAdmin(req: NextRequest) {
   try {
-    const token: any = await getToken({ req, secret: JWT_SECRET });
+    const token: any = await getToken({ req, secret: authSecret });
 
     if (!token) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

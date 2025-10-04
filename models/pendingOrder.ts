@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 interface IPendingOrder extends Document {
   _id: mongoose.Types.ObjectId;
@@ -111,4 +111,8 @@ const PendingOrderSchema = new Schema<IPendingOrder>({
 // Auto-expire pending orders after 30 minutes
 PendingOrderSchema.index({ createdAt: 1 }, { expireAfterSeconds: 1800 });
 
-export default mongoose.models.PendingOrder || mongoose.model<IPendingOrder>("PendingOrder", PendingOrderSchema);
+const PendingOrderModel: Model<IPendingOrder> =
+  (mongoose.models.PendingOrder as Model<IPendingOrder>) ||
+  mongoose.model<IPendingOrder>("PendingOrder", PendingOrderSchema);
+
+export default PendingOrderModel;

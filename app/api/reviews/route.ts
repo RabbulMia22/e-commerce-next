@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import connectMongoDB from '@/lib/db'
 import Review from '@/models/review'
 import { Product } from '@/models/products'
 import User from '@/models/user'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import uploadImage from '@/middleware/multerStorage'
+import { getSessionSafely } from '@/lib/session'
 
 // GET /api/reviews - Get reviews with filtering and pagination
 export async function GET(request: NextRequest) {
@@ -120,7 +119,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('=== API REVIEW SUBMISSION DEBUG ===')
     
-    const session = await getServerSession(authOptions)
+  const session = await getSessionSafely()
     console.log('Server session:', session)
     console.log('Session user:', session?.user)
     console.log('User email:', session?.user?.email)
@@ -376,7 +375,7 @@ export async function POST(request: NextRequest) {
 // PUT /api/reviews - Update helpful count
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+  const session = await getSessionSafely()
     
     if (!session || !session.user?.email) {
       return NextResponse.json(

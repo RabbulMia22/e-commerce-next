@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import dbConnect from '@/lib/db';
 import Order from '@/models/order';
 import { Product } from '@/models/products';
+import { getSessionSafely } from '@/lib/session';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,7 +31,8 @@ export async function POST(req: NextRequest) {
       console.log("🔄 SSL Payment order - using provided user:", user.email);
     } else {
       // Regular order - require session
-      const session = await getServerSession(authOptions);
+      const session = await getSessionSafely();
+
       if (!session?.user) {
         return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
       }
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSessionSafely();
     
     if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });

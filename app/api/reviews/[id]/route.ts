@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import connectMongoDB from '@/lib/db'
 import Review from '@/models/review'
 import User from '@/models/user'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { getSessionSafely } from '@/lib/session'
 
 // GET /api/reviews/[id] - Get specific review
 export async function GET(
@@ -43,7 +42,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+  const session = await getSessionSafely()
     const { id } = await params
     
     if (!session || !session.user?.email) {
@@ -131,7 +130,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+  const session = await getSessionSafely()
     const { id } = await params
     
     if (!session || !session.user?.email) {

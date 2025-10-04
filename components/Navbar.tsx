@@ -1,5 +1,4 @@
 "use client";
-import useAdmin from "@/hooks/useAdmin";
 import { useHydratedStore } from "@/hooks/useHydratedStore";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
@@ -11,15 +10,28 @@ import { FaShoppingCart, FaUserCircle, FaHome, FaThLarge } from "react-icons/fa"
 function Navbar() {
     const [search, setSearch] = useState("");
     const { basket, hydrated } = useHydratedStore();
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
+    const isAuthenticated = status === "authenticated";
+    const isAdmin = session?.user?.role === "admin";
     const [account, setAccount] = useState(false);
-    const { loading, isAdmin } = useAdmin();
     const pathname = usePathname();
     const router = useRouter();
     const accountRef = useRef<HTMLDivElement>(null);
     const desktopAccountRef = useRef<HTMLDivElement>(null);
     console.log("Admin Status:", isAdmin);
     console.log("Session Data:", session);
+
+    const handleLogout = async () => {
+        setAccount(false);
+        try {
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("basket-orders-storage");
+            }
+            await signOut({ callbackUrl: "/" });
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -70,14 +82,6 @@ function Navbar() {
             href: isAdmin ? "/dashboard" : "/orders" 
         }
     ];
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-16 bg-white shadow-md">
-                <p className="text-gray-500">Loading...</p>
-            </div>
-        );
-    }
 
     // Calculate total items in basket only after hydration
     const totalItems = hydrated ? basket.reduce((total, item) => total + item.quantity, 0) : 0;
@@ -150,6 +154,21 @@ function Navbar() {
 
                 {/* Account & Cart */}
                 <div className="flex items-center space-x-4">
+                    {isAuthenticated ? (
+                        <button
+                            onClick={handleLogout}
+                            className="hidden md:inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 rounded-md shadow-sm hover:shadow-md transition-shadow"
+                        >
+                            Logout
+                        </button>
+                    ) : (
+                        <Link
+                            href="/authentication/login"
+                            className="hidden md:inline-flex items-center px-4 py-2 text-sm font-semibold text-indigo-600 border border-indigo-100 rounded-md hover:bg-indigo-50 transition-colors"
+                        >
+                            Login
+                        </Link>
+                    )}
                     <div className="relative inline-block text-left" ref={desktopAccountRef}>
                         {/* Icon */}
                         <FaUserCircle
@@ -170,7 +189,7 @@ function Navbar() {
                                 >
                                     <div className="py-1">
                                         {/* User Info Section */}
-                                        {session && (
+                                        {isAuthenticated && (
                                             <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                                                 <p className="text-sm font-medium text-gray-900 truncate">
                                                     {session.user?.name || 'User'}
@@ -188,50 +207,9 @@ function Navbar() {
                                         >
                                             My Orders
                                         </Link>
-                                        {session ? (
+                                        {isAuthenticated ? (
                                             <button
-                                                onClick={async () => {
-                                                    setAccount(false);
-                                                    try {
-                                                        console.log('Starting logout process...');
-                                                        
-                                                        // Production-aware logout with home page redirect
-                                                        const baseUrl = process.env.NODE_ENV === 'production' 
-                                                            ? 'https://e-commerce-next-wine.vercel.app'
-                                                            : window.location.origin;
-                                                        
-                                                        console.log('Base URL for logout:', baseUrl);
-                                                        
-                                                        // Clear session and redirect
-                                                        const result = await signOut({ 
-                                                            callbackUrl: `${baseUrl}/`,
-                                                            redirect: false // Handle redirect manually for better control
-                                                        });
-                                                        
-                                                        console.log('SignOut result:', result);
-                                                        
-                                                        // Clear any remaining session data
-                                                        if (typeof window !== 'undefined') {
-                                                            localStorage.clear();
-                                                            sessionStorage.clear();
-                                                        }
-                                                        
-                                                        // Force redirect to home page after logout
-                                                        setTimeout(() => {
-                                                            console.log('Redirecting to:', `${baseUrl}/`);
-                                                            window.location.href = `${baseUrl}/`;
-                                                        }, 100); // Faster redirect
-                                                        
-                                                    } catch (error) {
-                                                        console.error('Logout error:', error);
-                                                        // Fallback: redirect to home page
-                                                        const fallbackUrl = process.env.NODE_ENV === 'production' 
-                                                            ? 'https://e-commerce-next-wine.vercel.app/'
-                                                            : '/';
-                                                        console.log('Fallback redirect to:', fallbackUrl);
-                                                        window.location.href = fallbackUrl;
-                                                    }
-                                                }}
+                                                onClick={handleLogout}
                                                 className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium"
                                             >
                                                 Logout
@@ -423,7 +401,7 @@ function Navbar() {
                                 
                                 <div className="relative z-20 py-2">
                                     {/* User Info Section */}
-                                    {session && (
+                                    {isAuthenticated && (
                                         <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 via-white to-purple-50">
                                             <div className="flex items-center space-x-3">
                                                 <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -454,50 +432,9 @@ function Navbar() {
                                             My Orders
                                         </Link>
                                         
-                                        {session ? (
+                                        {isAuthenticated ? (
                                             <button
-                                                onClick={async () => {
-                                                    setAccount(false);
-                                                    try {
-                                                        console.log('Starting mobile logout process...');
-                                                        
-                                                        // Production-aware mobile logout with home page redirect
-                                                        const baseUrl = process.env.NODE_ENV === 'production' 
-                                                            ? 'https://e-commerce-next-wine.vercel.app'
-                                                            : window.location.origin;
-                                                        
-                                                        console.log('Mobile base URL for logout:', baseUrl);
-                                                        
-                                                        // Clear session and redirect for mobile
-                                                        const result = await signOut({ 
-                                                            callbackUrl: `${baseUrl}/`,
-                                                            redirect: false // Handle redirect manually for mobile
-                                                        });
-                                                        
-                                                        console.log('Mobile SignOut result:', result);
-                                                        
-                                                        // Clear any remaining session data for mobile
-                                                        if (typeof window !== 'undefined') {
-                                                            localStorage.clear();
-                                                            sessionStorage.clear();
-                                                        }
-                                                        
-                                                        // Force redirect to home page after logout for mobile
-                                                        setTimeout(() => {
-                                                            console.log('Mobile redirecting to:', `${baseUrl}/`);
-                                                            window.location.href = `${baseUrl}/`;
-                                                        }, 50); // Very fast for mobile
-                                                        
-                                                    } catch (error) {
-                                                        console.error('Mobile logout error:', error);
-                                                        // Fallback: redirect to home page
-                                                        const fallbackUrl = process.env.NODE_ENV === 'production' 
-                                                            ? 'https://e-commerce-next-wine.vercel.app/'
-                                                            : '/';
-                                                        console.log('Mobile fallback redirect to:', fallbackUrl);
-                                                        window.location.href = fallbackUrl;
-                                                    }
-                                                }}
+                                                onClick={handleLogout}
                                                 className="w-full flex items-center text-left px-5 py-3 text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 text-sm font-medium group"
                                             >
                                                 <div className="w-8 h-8 bg-red-100 group-hover:bg-red-200 rounded-lg flex items-center justify-center mr-3 transition-colors duration-200">
