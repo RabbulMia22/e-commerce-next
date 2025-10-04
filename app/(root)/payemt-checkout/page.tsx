@@ -324,42 +324,42 @@ const onSubmit = async (data: CheckoutFormData) => {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-12">
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-6">
         {/* Header */}
-        <div className="flex items-center mb-8">
+        <div className="flex items-center mb-6 sm:mb-8">
           <button
             onClick={() => router.back()}
-            className="flex items-center text-gray-600 hover:text-gray-900 mr-4"
+            className="flex items-center text-gray-600 hover:text-gray-900 mr-2 sm:mr-4 text-sm sm:text-base"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
             Back
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Checkout</h1>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-8">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-center space-x-1 sm:space-x-2 md:space-x-4 lg:space-x-8 overflow-x-auto pb-2 -mx-2 sm:-mx-4">
             {[
               { number: 1, title: 'Shipping', icon: Truck },
               { number: 2, title: 'Payment', icon: CreditCard },
               { number: 3, title: 'Review', icon: CheckCircle }
             ].map((stepItem, index) => (
-              <div key={stepItem.number} className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+              <div key={stepItem.number} className="flex items-center flex-shrink-0">
+                <div className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${
                   step >= stepItem.number
                     ? 'bg-blue-600 border-blue-600 text-white'
                     : 'bg-white border-gray-300 text-gray-400'
                 }`}>
-                  <stepItem.icon className="w-5 h-5" />
+                  <stepItem.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <span className={`ml-2 font-medium ${
+                <span className={`ml-1 sm:ml-2 font-medium text-xs sm:text-sm ${
                   step >= stepItem.number ? 'text-blue-600' : 'text-gray-400'
                 }`}>
                   {stepItem.title}
                 </span>
                 {index < 2 && (
-                  <ChevronRight className="w-5 h-5 mx-4 text-gray-400" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 mx-1 sm:mx-2 md:mx-4 text-gray-400 hidden sm:block" />
                 )}
               </div>
             ))}
@@ -367,32 +367,32 @@ const onSubmit = async (data: CheckoutFormData) => {
         </div>
 
         {submitError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
-            <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0" />
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 mr-2 sm:mr-3 flex-shrink-0" />
             <p className="text-sm text-red-700">{submitError}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 order-2 lg:order-1">
               {/* Step 1: Shipping Information */}
               {step === 1 && (
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h2 className="text-xl font-semibold mb-6 flex items-center text-black ">
-                    <MapPin className="w-5 h-5 mr-2 text-blue-600 " />
+                <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center text-black ">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-blue-600 " />
                     Shipping Information
                   </h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     {/* Full Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Full Name *
                       </label>
                       <div className="relative">
-                        <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                        <User className="absolute left-3 top-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                         <Controller
                           name="fullName"
                           control={control}
@@ -400,7 +400,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                             <input
                               {...field}
                               type="text"
-                              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${
+                              className={`w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${
                                 errors.fullName ? 'border-red-300' : 'border-gray-300'
                               }`}
                               placeholder="Enter your full name"
@@ -419,7 +419,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                         Phone Number *
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                        <Phone className="absolute left-3 top-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                         <Controller
                           name="phone"
                           control={control}
@@ -427,7 +427,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                             <input
                               {...field}
                               type="tel"
-                              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${
+                              className={`w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${
                                 errors.phone ? 'border-red-300' : 'border-gray-300'
                               }`}
                               placeholder="01XXXXXXXXX"
@@ -452,7 +452,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                           <textarea
                             {...field}
                             rows={3}
-                            className={`w-full text-black px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full text-black px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                               errors.address ? 'border-red-300' : 'border-gray-300'
                             }`}
                             placeholder="House/Flat no, Road, Block, Area"
@@ -476,7 +476,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                           <input
                             {...field}
                             type="text"
-                            className={`w-full text-black px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full text-black px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                               errors.area ? 'border-red-300' : 'border-gray-300'
                             }`}
                             placeholder="e.g., Dhanmondi, Gulshan"
@@ -499,7 +499,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                         render={({ field }) => (
                           <select
                             {...field}
-                            className={`w-full text-black px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full text-black px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                               errors.division ? 'border-red-300' : 'border-gray-300'
                             }`}
                           >
@@ -525,7 +525,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                         render={({ field }) => (
                           <select
                             {...field}
-                            className={`w-full px-4 text-black py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                            className={`w-full px-3 sm:px-4 text-black py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                               errors.district ? 'border-red-300' : 'border-gray-300'
                             }`}
                           >
@@ -552,7 +552,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                           <input
                             {...field}
                             type="text"
-                            className="w-full text-black px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full text-black px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="1000"
                           />
                         )}
@@ -568,7 +568,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                         name="addressType"
                         control={control}
                         render={({ field }) => (
-                          <div className="flex space-x-4">
+                          <div className="flex flex-wrap gap-4 sm:space-x-4">
                             {['home', 'office'].map((type) => (
                               <label key={type} className="flex items-center text-black ">
                                 <input
@@ -598,7 +598,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                           <input
                             {...field}
                             type="text"
-                            className="w-full text-black  px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full text-black  px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Near mosque, school, etc."
                           />
                         )}
@@ -614,7 +614,7 @@ const onSubmit = async (data: CheckoutFormData) => {
                         name="deliveryType"
                         control={control}
                         render={({ field }) => (
-                          <div className="flex space-x-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 sm:space-x-4">
                             <label className="flex items-center">
                               <input
                                 type="radio"
@@ -641,14 +641,14 @@ const onSubmit = async (data: CheckoutFormData) => {
                     </div>
                   </div>
 
-                  <div className="mt-6 flex justify-end">
+                  <div className="mt-4 sm:mt-6 flex justify-end">
                     <button
                       type="button"
                       onClick={handleNextStep}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
                     >
                       Continue to Payment
-                      <ChevronRight className="w-4 h-4 ml-2" />
+                      <ChevronRight className="w-4 h-4 ml-1 sm:ml-2" />
                     </button>
                   </div>
                 </div>
@@ -656,9 +656,9 @@ const onSubmit = async (data: CheckoutFormData) => {
 
               {/* Step 2: Payment Method */}
               {step === 2 && (
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h2 className="text-xl font-semibold mb-6 flex items-center text-black">
-                    <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
+                <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center text-black">
+                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-blue-600" />
                     Payment Method
                   </h2>
 
@@ -666,9 +666,9 @@ const onSubmit = async (data: CheckoutFormData) => {
                     name="paymentMethod"
                     control={control}
                     render={({ field }) => (
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         {/* SSLCommerz */}
-                        <div className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
+                        <div className={`border-2 rounded-lg p-3 sm:p-4 cursor-pointer transition-colors ${
                           field.value === 'sslcommerz' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                         }`} onClick={() => field.onChange('sslcommerz')}>
                           <div className="flex items-center justify-between">
@@ -678,27 +678,27 @@ const onSubmit = async (data: CheckoutFormData) => {
                                 value="sslcommerz"
                                 checked={field.value === 'sslcommerz'}
                                 onChange={() => field.onChange('sslcommerz')}
-                                className="mr-3 text-black "
+                                className="mr-2 sm:mr-3 text-black "
                               />
                               <div>
-                                <h3 className="font-medium text-black">Online Payment (SSLCommerz)</h3>
-                                <p className="text-sm text-gray-600">Pay with bKash, Nagad, Rocket, Credit/Debit Cards</p>
+                                <h3 className="font-medium text-black text-sm sm:text-base">Online Payment (SSLCommerz)</h3>
+                                <p className="text-xs sm:text-sm text-gray-600">Pay with bKash, Nagad, Rocket, Credit/Debit Cards</p>
                               </div>
                             </div>
-                            <Shield className="w-6 h-6 text-green-500" />
+                            <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
                           </div>
                           {field.value === 'sslcommerz' && (
-                            <div className="mt-4 grid grid-cols-4 gap-2">
-                              <div className="bg-pink-500 text-white text-xs p-2 rounded text-center font-bold">bKash</div>
-                              <div className="bg-orange-500 text-white text-xs p-2 rounded text-center font-bold">Nagad</div>
-                              <div className="bg-purple-500 text-white text-xs p-2 rounded text-center font-bold">Rocket</div>
-                              <div className="bg-blue-600 text-white text-xs p-2 rounded text-center font-bold">VISA</div>
+                            <div className="mt-3 sm:mt-4 grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2">
+                              <div className="bg-pink-500 text-white text-xs p-1 sm:p-2 rounded text-center font-bold">bKash</div>
+                              <div className="bg-orange-500 text-white text-xs p-1 sm:p-2 rounded text-center font-bold">Nagad</div>
+                              <div className="bg-purple-500 text-white text-xs p-1 sm:p-2 rounded text-center font-bold">Rocket</div>
+                              <div className="bg-blue-600 text-white text-xs p-1 sm:p-2 rounded text-center font-bold">VISA</div>
                             </div>
                           )}
                         </div>
 
                         {/* Cash on Delivery */}
-                        <div className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
+                        <div className={`border-2 rounded-lg p-3 sm:p-4 cursor-pointer transition-colors ${
                           field.value === 'cash_on_delivery' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                         }`} onClick={() => field.onChange('cash_on_delivery')}>
                           <div className="flex items-center justify-between">
@@ -708,35 +708,35 @@ const onSubmit = async (data: CheckoutFormData) => {
                                 value="cash_on_delivery"
                                 checked={field.value === 'cash_on_delivery'}
                                 onChange={() => field.onChange('cash_on_delivery')}
-                                className="mr-3 text-black "
+                                className="mr-2 sm:mr-3 text-black "
                               />
                               <div>
-                                <h3 className="font-medium text-black">Cash on Delivery</h3>
-                                <p className="text-sm text-gray-600">Pay when you receive your order</p>
+                                <h3 className="font-medium text-black text-sm sm:text-base">Cash on Delivery</h3>
+                                <p className="text-xs sm:text-sm text-gray-600">Pay when you receive your order</p>
                               </div>
                             </div>
-                            <Clock className="w-6 h-6 text-orange-500" />
+                            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
                           </div>
                         </div>
                       </div>
                     )}
                   />
 
-                  <div className="mt-6 flex justify-between">
+                  <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:justify-between gap-3 sm:gap-0">
                     <button
                       type="button"
                       onClick={() => setStep(1)}
-                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       Back to Shipping
                     </button>
                     <button
                       type="button"
                       onClick={handleNextStep}
-                      className="px-6 text-black  py-3 bg-blue-600  rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                      className="w-full sm:w-auto px-4 sm:px-6 text-black  py-2 sm:py-3 bg-blue-600  rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
                     >
                       Review Order
-                      <ChevronRight className="w-4 h-4 ml-2" />
+                      <ChevronRight className="w-4 h-4 ml-1 sm:ml-2" />
                     </button>
                   </div>
                 </div>
@@ -744,19 +744,19 @@ const onSubmit = async (data: CheckoutFormData) => {
 
               {/* Step 3: Order Review */}
               {step === 3 && (
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <h2 className="text-xl font-semibold mb-6 flex items-center text-black">
-                    <CheckCircle className="w-5 h-5 mr-2 text-blue-600" />
+                <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center text-black">
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-blue-600" />
                     Review Your Order
                   </h2>
 
                   {/* Order Items */}
-                  <div className="mb-6">
-                    <h3 className="font-medium mb-4 text-black">Order Items</h3>
-                    <div className="space-y-4">
+                  <div className="mb-4 sm:mb-6">
+                    <h3 className="font-medium mb-3 sm:mb-4 text-black text-sm sm:text-base">Order Items</h3>
+                    <div className="space-y-3 sm:space-y-4">
                       {items.map((item) => (
-                        <div key={`${item.product._id}-${item.selectedSize}`} className="flex text-black items-center space-x-4 p-4 border rounded-lg">
-                          <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
+                        <div key={`${item.product._id}-${item.selectedSize}`} className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3 sm:p-3 p-2 border rounded-lg text-sm">
+                          <div className="w-full sm:w-16 h-20 sm:h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                             <Image
                               src={item.product.images?.[0] || '/placeholder-image.jpg'}
                               alt={item.product.title}
@@ -765,12 +765,12 @@ const onSubmit = async (data: CheckoutFormData) => {
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium">{item.product.title}</h4>
-                            <p className="text-sm text-gray-600">Size: {item.selectedSize}</p>
-                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium truncate">{item.product.title}</h4>
+                            <p className="text-xs sm:text-sm text-gray-600">Size: {item.selectedSize}</p>
+                            <p className="text-xs sm:text-sm text-gray-600">Qty: {item.quantity}</p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right sm:text-base">
                             <p className="font-medium">৳{item.product.price * item.quantity}</p>
                           </div>
                         </div>
@@ -779,9 +779,9 @@ const onSubmit = async (data: CheckoutFormData) => {
                   </div>
 
                   {/* Shipping Address */}
-                  <div className="mb-6">
-                    <h3 className="font-medium mb-2 text-black">Shipping Address</h3>
-                    <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="mb-4 sm:mb-6">
+                    <h3 className="font-medium mb-2 text-black text-sm sm:text-base">Shipping Address</h3>
+                    <div className="p-3 sm:p-4 bg-gray-50 rounded-lg text-sm">
                       <p className="font-medium text-black">{watchedValues.fullName}</p>
                       <p className='text-black'>phone number: {watchedValues.phone}</p>
                       <p className='text-black'>address: {watchedValues.address}</p>
@@ -791,17 +791,17 @@ const onSubmit = async (data: CheckoutFormData) => {
                   </div>
 
                   {/* Payment Method */}
-                  <div className="mb-6">
-                    <h3 className="font-medium mb-2 text-black">Payment Method</h3>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="capitalize text-black">
+                  <div className="mb-4 sm:mb-6">
+                    <h3 className="font-medium mb-2 text-black text-sm sm:text-base">Payment Method</h3>
+                    <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
+                      <p className="capitalize text-black text-sm">
                         {watchedValues.paymentMethod === 'sslcommerz' ? 'Online Payment (SSLCommerz)' : 'Cash on Delivery'}
                       </p>
                     </div>
                   </div>
 
                   {/* Notes */}
-                  <div className="mb-6">
+                  <div className="mb-4 sm:mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Order Notes (Optional)
                     </label>
@@ -812,25 +812,25 @@ const onSubmit = async (data: CheckoutFormData) => {
                         <textarea
                           {...field}
                           rows={3}
-                          className="w-full text-black px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full text-black px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Special instructions for delivery..."
                         />
                       )}
                     />
                   </div>
 
-                  <div className="flex justify-between">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-3 sm:gap-0">
                     <button
                       type="button"
                       onClick={() => setStep(2)}
-                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       Back to Payment
                     </button>
                     <button
                       type="submit"
                       disabled={isLoading || !isValid || isSubmitting}
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                     >
                       {isLoading || isSubmitting ? (
                         <>
@@ -850,16 +850,16 @@ const onSubmit = async (data: CheckoutFormData) => {
             </div>
 
             {/* Order Summary Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-                <h3 className="text-lg font-semibold mb-4 text-black">Order Summary</h3>
+            <div className="lg:col-span-1 order-1 lg:order-2 mb-6 lg:mb-0">
+              <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 sticky top-20 sm:top-24">
+                <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-black">Order Summary</h3>
                 
-                <div className="space-y-3 mb-4">
-                  <div className="flex justify-between">
+                <div className="space-y-2 sm:space-y-5 mb-3 sm:mb-4">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className='text-black'>Subtotal ({items.length} items)</span>
                     <span className='text-black'>৳{subtotal}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm sm:text-base">
                     <span className='text-black'>Shipping ({watchedValues.deliveryType})</span>
                     <span className='text-black'>
                       {shippingCost === 0 ? (
@@ -870,33 +870,33 @@ const onSubmit = async (data: CheckoutFormData) => {
                     </span>
                   </div>
                   {shippingCost > 0 && subtotal < 2000 && deliveryZone === 'inside_dhaka' && (
-                    <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+                    <div className="text-xs sm:text-sm text-blue-600 bg-blue-50 p-2 sm:p-3 rounded-lg">
                       💡 Add ৳{2000 - subtotal} more for free shipping in Dhaka!
                     </div>
                   )}
                 </div>
 
-                <div className="border-t pt-4 mb-4">
-                  <div className="flex justify-between text-lg font-semibold">
+                <div className="border-t pt-3 sm:pt-4 mb-3 sm:mb-4">
+                  <div className="flex justify-between text-base sm:text-lg font-semibold">
                     <span className='text-black'>Total</span>
                     <span className='text-black'>৳{totalAmount}</span>
                   </div>
                 </div>
 
                 <div className="text-center">
-                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-500 mb-4">
-                    <Shield className="w-4 h-4" />
+                  <div className="flex items-center justify-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
+                    <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>Secure checkout guaranteed</span>
                   </div>
                 </div>
 
                 {/* Delivery Info */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium mb-2 flex items-center text-black">
-                    <Truck className="w-4 h-4 mr-2" />
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <h4 className="font-medium mb-2 flex items-center text-black text-sm sm:text-base">
+                    <Truck className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     Delivery Info
                   </h4>
-                  <div className="text-sm text-gray-600 space-y-1">
+                  <div className="text-xs sm:text-sm text-gray-600 space-y-1">
                     <p>📍 {deliveryZone === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}</p>
                     <p>⏱️ {watchedValues.deliveryType === 'express' ? 'Express: ' : 'Standard: '}
                       {deliveryZone === 'inside_dhaka' ? '1-2 days' : '3-5 days'}
@@ -911,6 +911,6 @@ const onSubmit = async (data: CheckoutFormData) => {
       </div>
     </div>
   )
-}
+};
 
 export default PaymentCheckoutPage
