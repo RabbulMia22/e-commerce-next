@@ -1,12 +1,19 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
+import { MongoClient } from "mongodb";
 import dbConnect from "@/lib/db";
 import User from "@/models/user";
 import bcrypt from "bcryptjs";
 import { JWT } from "next-auth/jwt";
 
+// MongoDB client for NextAuth adapter
+const client = new MongoClient(process.env.MONGODB_URI as string);
+const clientPromise = client.connect();
+
 export const authOptions: NextAuthOptions = {
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     // ✅ Credentials login
     CredentialsProvider({
@@ -71,20 +78,23 @@ export const authOptions: NextAuthOptions = {
   ],
 
   session: {
-    strategy: "jwt" as const,
+    strategy: "database" as const, // Use database strategy with MongoDB adapter
     maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours - how often to update the session
   },
 
   callbacks: {
-    // Runs when a user signs in
+    // Runs when a user signs in - Enhanced for MongoDB adapter
     async signIn({ user, account, profile, email, credentials }) {
       try {
         console.log("SignIn callback:", { 
           provider: account?.provider, 
           userEmail: (user as any)?.email || (profile as any)?.email,
-          accountType: account?.type 
+          accountType: account?.type,
+          userId: user?.id 
         });
 
+        // For Google OAuth, sync with your custom User model
         if (account?.provider === "google" && profile) {
           await dbConnect();
           
@@ -95,17 +105,35 @@ export const authOptions: NextAuthOptions = {
           
           if (!existingUser) {
             console.log("Creating new user for Google OAuth:", userEmail);
-            // ✅ Create user with fields that exist in your schema
+            // ✅ Create user in your custom User model
             await (User as any).create({
               name: (profile as any).name || `${(profile as any).given_name || ''} ${(profile as any).family_name || ''}`.trim(),
               email: userEmail,
               role: "user",
             });
-            console.log("New user created successfully");
+            console.log("New user created successfully in custom User model");
           } else {
             console.log("Existing user found for Google OAuth:", userEmail);
+            // Update the NextAuth user record with role from custom model
+            if (existingUser.role && user) {
+              (user as any).role = existingUser.role;
+            }
           }
         }
+
+        // For credentials login, ensure user exists in both systems
+        if (account?.provider === "credentials" && user?.email) {
+          await dbConnect();
+          
+          const dbUser = await (User as any).findOne({ email: user.email });
+          if (dbUser && user) {
+            // Sync additional fields
+            (user as any).role = dbUser.role || "user";
+            (user as any).phone = dbUser.phone;
+            console.log("Synced credentials user with custom model");
+          }
+        }
+
         return true;
       } catch (error) {
         console.error("SignIn callback error:", error);
@@ -114,54 +142,34 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    // ✅ JWT callback that matches your schema
-    async jwt({ token, user }) {
-       if (user) {
-        token.id = user.id;
-      }
-      const t = token as any;
-
-      // If user just signed in, set initial token data
-      if (user) {
-        t.id = (user as any).id;
-        t.role = (user as any).role || "user";
-        t.name = (user as any).name;
-        t.phone = (user as any).phone;
-        t.email = (user as any).email || t.email; // ensure email is present for lookups
-      }
-
-      // Prepare safe lookup
-      const hasValidId = typeof t.id === 'string' && /^[0-9a-fA-F]{24}$/.test(t.id);
-      const lookup = hasValidId ? { _id: t.id } : (t.email ? { email: t.email } : null);
-
-      if (lookup) {
+    // ✅ Session callback for database strategy
+    async session({ session, user }) {
+      console.log("Session callback:", { session: !!session, user: !!user });
+      
+      if (user && session.user) {
+        // With MongoDB adapter, user object comes from database
+        (session.user as any).id = user.id;
+        (session.user as any).role = (user as any).role || "user";
+        (session.user as any).phone = (user as any).phone;
+        
+        // Try to get additional user data from your custom User model
         try {
           await dbConnect();
-          const dbUser = await (User as any).findOne(lookup).select("role _id email name phone");
+          const dbUser = await (User as any).findOne({ email: session.user.email }).select("role _id email name phone");
           if (dbUser) {
-            t.id = dbUser._id.toString();
-            t.role = dbUser.role || "user";
-            t.name = dbUser.name;
-            t.phone = dbUser.phone;
-            t.email = dbUser.email;
+            (session.user as any).id = dbUser._id.toString();
+            (session.user as any).role = dbUser.role || "user";
+            (session.user as any).phone = dbUser.phone;
+            console.log("Updated session with user data:", { 
+              id: (session.user as any).id, 
+              role: (session.user as any).role 
+            });
           }
         } catch (error) {
-          console.error("❌ JWT Callback - DB lookup error:", error);
+          console.error("❌ Session Callback - DB lookup error:", error);
         }
       }
-
-      return t as JWT;
-    },
-
-    // ✅ Session callback that matches your schema
-    async session({ session, token }) {
-      const t = token as any;
-      if (t && session.user) {
-        (session.user as any).id = t.id;
-        (session.user as any).role = t.role || "user";
-        (session.user as any).name = t.name || session.user.name;
-        (session.user as any).phone = t.phone;
-      }
+      
       return session;
     },
 
@@ -285,7 +293,7 @@ export const authOptions: NextAuthOptions = {
     signOut: '/', // Redirect to home page after logout
   },
 
-  // Enhanced configuration for production deployment
+  // Enhanced configuration for production deployment with MongoDB sessions
   useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
@@ -299,23 +307,6 @@ export const authOptions: NextAuthOptions = {
         ...(process.env.NODE_ENV === 'production' && process.env.NEXTAUTH_URL && {
           domain: `.${new URL(process.env.NEXTAUTH_URL).hostname.replace('www.', '')}`
         })
-      }
-    },
-    callbackUrl: {
-      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.callback-url`,
-      options: {
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      }
-    },
-    csrfToken: {
-      name: `${process.env.NODE_ENV === 'production' ? '__Host-' : ''}next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
       }
     }
   },
