@@ -123,25 +123,25 @@ function LoginPageContent() {
         throw new Error(result.error)
       }
       
-      if (result?.ok) {
+      if (result?.url) {
         console.log('Google sign-in successful, redirecting...')
-        
-        // Handle redirect based on device type
+
+        const redirectUrl = result.url || callbackUrl || '/'
+
+        setIsLoading(false)
+
         if (isMobile) {
-          // For mobile, use window.location for more reliable redirect
           setTimeout(() => {
-            const redirectUrl = result.url || callbackUrl || '/'
             console.log('Mobile redirect to:', redirectUrl)
             window.location.href = redirectUrl
           }, 500)
         } else {
-          // For desktop, use Next.js router
-          const redirectUrl = result.url || callbackUrl || '/'
           router.push(redirectUrl)
         }
-      } else {
-        throw new Error('Sign-in was not successful')
+        return
       }
+
+      throw new Error('No redirect URL returned from Google sign-in')
       
     } catch (err) {
       console.error('Google sign-in error:', err)
