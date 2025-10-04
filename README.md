@@ -50,6 +50,15 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Legal Policies (Public Links)
+
+Google OAuth verification requires publicly accessible policy pages. You can review ours here:
+
+- **Privacy Policy:** https://e-commerce-next-wine.vercel.app/privacy
+- **Terms of Service:** https://e-commerce-next-wine.vercel.app/terms
+
+Both endpoints are also available in the deployed application footer for easy access.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

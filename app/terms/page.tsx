@@ -1,6 +1,8 @@
 import React from 'react'
 import Link from 'next/link'
 
+const LAST_UPDATED = 'October 4, 2025'
+
 const TermsOfServicePage = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -16,122 +18,138 @@ const TermsOfServicePage = () => {
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Terms of Service</h1>
-          
+
           <div className="prose prose-lg max-w-none">
             <p className="text-gray-600 mb-6">
-              <strong>Last updated:</strong> {new Date().toLocaleDateString()}
+              <strong>Last updated:</strong> {LAST_UPDATED}
             </p>
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Acceptance of Terms</h2>
               <p className="text-gray-700">
-                By accessing and using ShopMate, you accept and agree to be bound by the terms 
-                and provision of this agreement. If you do not agree to these terms, you should 
-                not use this platform.
+                By accessing or using the ShopMate platform, mobile applications, or any related services (collectively, the “Services”), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, you must discontinue your use of the Services immediately.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Description of Service</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Overview of Our Services</h2>
               <p className="text-gray-700 mb-4">
-                ShopMate is an e-commerce platform that allows users to:
+                ShopMate provides a digital marketplace where customers can discover, review, and purchase products. Core functionality includes:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li>Browse and purchase products online</li>
-                <li>Create user accounts and manage profiles</li>
-                <li>Leave reviews and ratings for products</li>
-                <li>Track orders and manage purchases</li>
-                <li>Sign in using Google OAuth for convenience</li>
+                <li>Product browsing, search, and categorization</li>
+                <li>Account registration and profile management</li>
+                <li>Shopping cart, checkout, and order tracking workflows</li>
+                <li>User-generated reviews and ratings</li>
+                <li>Optional social sign-in via Google OAuth 2.0</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">3. User Accounts</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">3. Eligibility & Account Responsibilities</h2>
               <p className="text-gray-700 mb-4">
-                To access certain features, you must create an account. You agree to:
+                To create an account or place orders, you must be at least 18 years old or the age of majority in your jurisdiction. You agree to:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li>Provide accurate and complete information</li>
-                <li>Keep your account information updated</li>
-                <li>Maintain the security of your account</li>
-                <li>Accept responsibility for all activities under your account</li>
+                <li>Provide accurate, current, and complete registration details</li>
+                <li>Maintain the confidentiality of your login credentials</li>
+                <li>Promptly update any information that changes</li>
+                <li>Accept responsibility for all activities conducted under your account</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">4. Google OAuth Integration</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">4. Google OAuth & Data Usage</h2>
               <p className="text-gray-700 mb-4">
-                When you choose to sign in with Google:
+                ShopMate integrates Google OAuth to provide a quick sign-in option. When you choose "Continue with Google":
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li>You authorize us to access your basic Google profile information</li>
-                <li>We only collect your name and email address</li>
-                <li>You can revoke this access at any time through your Google account settings</li>
-                <li>Your Google account credentials are never stored on our servers</li>
+                <li>We request access to your Google account’s basic profile (name and email address) solely for authentication and account creation.</li>
+                <li>Your Google password is never transmitted to or stored by ShopMate.</li>
+                <li>You may revoke our access at any time through your Google security settings.</li>
+                <li>We comply with Google API Services User Data Policy, including the Limited Use requirements.</li>
               </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">5. Prohibited Uses</h2>
-              <p className="text-gray-700 mb-4">You may not use our platform to:</p>
-              <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li>Violate any laws or regulations</li>
-                <li>Infringe on intellectual property rights</li>
-                <li>Transmit malicious software or harmful content</li>
-                <li>Attempt to gain unauthorized access to our systems</li>
-                <li>Interfere with the proper functioning of the platform</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">6. Orders and Payments</h2>
-              <p className="text-gray-700 mb-4">
-                By placing an order, you agree that:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li>All information provided is accurate</li>
-                <li>You are authorized to use the payment method</li>
-                <li>You will pay all charges incurred</li>
-                <li>Prices and availability are subject to change</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Privacy Policy</h2>
-              <p className="text-gray-700">
-                Your privacy is important to us. Please review our{' '}
+              <p className="text-gray-700 mt-4">
+                Additional details about how we store and protect OAuth data can be found in our{' '}
                 <Link href="/privacy" className="text-orange-600 hover:text-orange-500 underline">
                   Privacy Policy
-                </Link>{' '}
-                to understand how we collect, use, and protect your information.
+                </Link>.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">8. Limitation of Liability</h2>
-              <p className="text-gray-700">
-                ShopMate shall not be liable for any indirect, incidental, special, 
-                consequential, or punitive damages resulting from your use of the platform.
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">5. Permitted & Prohibited Activities</h2>
+              <p className="text-gray-700 mb-4">You agree that you will not:</p>
+              <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Violate applicable local, state, national, or international laws</li>
+                <li>Infringe upon or misappropriate intellectual property rights</li>
+                <li>Upload viruses, malware, or other harmful code</li>
+                <li>Attempt to gain unauthorized access to our systems or user data</li>
+                <li>Use automated scripts or scrapers without written permission</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">6. Product Listings, Orders & Payments</h2>
+              <p className="text-gray-700 mb-4">
+                By placing an order, you confirm that all information provided is accurate and that you are authorized to use the selected payment method. Prices, availability, promotions, and shipping estimates are subject to change without notice. We reserve the right to refuse or cancel orders for any reason, including suspected fraud.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">9. Changes to Terms</h2>
-              <p className="text-gray-700">
-                We reserve the right to modify these terms at any time. Changes will be 
-                effective immediately upon posting. Your continued use of the platform 
-                constitutes acceptance of the modified terms.
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Shipping, Returns & Refunds</h2>
+              <p className="text-gray-700 mb-4">
+                Shipping timelines are estimates and may vary based on carrier delays or unforeseen circumstances. Our return and refund policies are detailed during checkout and in your order confirmation. Products must be returned in their original condition unless otherwise specified.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Contact Information</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">8. Intellectual Property</h2>
               <p className="text-gray-700">
-                For questions about these Terms of Service, please contact us at:
+                All content, trademarks, logos, and software associated with ShopMate are the property of their respective owners. You may not reproduce, distribute, or create derivative works from any portion of the Services without prior written consent.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">9. Privacy & Data Protection</h2>
+              <p className="text-gray-700">
+                We manage your personal data in accordance with our{' '}
+                <Link href="/privacy" className="text-orange-600 hover:text-orange-500 underline">
+                  Privacy Policy
+                </Link>. This includes details on data collection, storage, use, retention, and your rights to access or delete information.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">10. Termination of Services</h2>
+              <p className="text-gray-700">
+                We may suspend or terminate your account with or without notice if you breach these Terms or if required by law. Upon termination, your right to access the Services will cease immediately, though certain obligations (including payment of outstanding balances) will survive.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">11. Disclaimers & Limitation of Liability</h2>
+              <p className="text-gray-700 mb-4">
+                The Services are provided on an "as is" and "as available" basis without warranties of any kind, either express or implied. To the fullest extent permitted by law, ShopMate disclaims all warranties, and will not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of the Services.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">12. Changes to These Terms</h2>
+              <p className="text-gray-700">
+                We may update these Terms from time to time. Material changes will be posted on this page with an updated date. Continued use of the Services after changes are posted constitutes acceptance of the revised Terms.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">13. Contact Information</h2>
+              <p className="text-gray-700">
+                If you have questions about these Terms of Service or need to exercise your legal rights, please contact us using the details below:
               </p>
               <div className="mt-4 text-gray-700">
                 <p><strong>Email:</strong> mdrabbulmia24@gmail.com</p>
-                <p><strong>Website:</strong> ShopMate E-commerce Platform</p>
+                <p><strong>Business Name:</strong> ShopMate E-commerce Platform</p>
+                <p><strong>Location:</strong> Dhaka, Bangladesh</p>
               </div>
             </section>
           </div>
