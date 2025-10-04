@@ -4,8 +4,8 @@ import { useHydratedStore } from "@/hooks/useHydratedStore";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaShoppingCart, FaUserCircle, FaHome, FaThLarge } from "react-icons/fa";
 
 function Navbar() {
@@ -16,8 +16,34 @@ function Navbar() {
     const { loading, isAdmin } = useAdmin();
     const pathname = usePathname();
     const router = useRouter();
+    const accountRef = useRef<HTMLDivElement>(null);
+    const desktopAccountRef = useRef<HTMLDivElement>(null);
     console.log("Admin Status:", isAdmin);
     console.log("Session Data:", session);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                accountRef.current && 
+                !accountRef.current.contains(event.target as Node) &&
+                desktopAccountRef.current && 
+                !desktopAccountRef.current.contains(event.target as Node)
+            ) {
+                setAccount(false);
+            }
+        };
+
+        if (account) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('touchstart', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [account]);
 
     // Handle search functionality
     const handleSearch = (e?: React.FormEvent) => {
@@ -124,7 +150,7 @@ function Navbar() {
 
                 {/* Account & Cart */}
                 <div className="flex items-center space-x-4">
-                    <div className="relative inline-block text-left">
+                    <div className="relative inline-block text-left" ref={desktopAccountRef}>
                         {/* Icon */}
                         <FaUserCircle
                             size={28}
@@ -132,39 +158,68 @@ function Navbar() {
                             className="text-gray-700 hover:text-indigo-600 cursor-pointer transition-colors"
                         />
 
-                        {/* Dropdown */}
-                        {account && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-2xl z-50 overflow-hidden">
-                                <div className="py-1">
-                                    <Link
-                                        href="/orders"
-                                        onClick={() => setAccount(false)}
-                                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
-                                    >
-                                        My Orders
-                                    </Link>
-                                    {session ? (
-                                        <button
-                                            onClick={() => {
-                                                setAccount(false);
-                                                signOut({ callbackUrl: "/" });
-                                            }}
-                                            className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium"
-                                        >
-                                            Logout
-                                        </button>
-                                    ) : (
+                        {/* Desktop Dropdown */}
+                        <AnimatePresence>
+                            {account && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    transition={{ duration: 0.15, ease: "easeOut" }}
+                                    className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-2xl z-50 overflow-hidden"
+                                >
+                                    <div className="py-1">
+                                        {/* User Info Section */}
+                                        {session && (
+                                            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                                                <p className="text-sm font-medium text-gray-900 truncate">
+                                                    {session.user?.name || 'User'}
+                                                </p>
+                                                <p className="text-xs text-gray-600 truncate">
+                                                    {session.user?.email}
+                                                </p>
+                                            </div>
+                                        )}
+                                        
                                         <Link
+                                            href="/orders"
                                             onClick={() => setAccount(false)}
-                                            href="/authentication/login"
-                                            className="block px-4 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors font-medium"
+                                            className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors font-medium border-b border-gray-100"
                                         >
-                                            Login
+                                            My Orders
                                         </Link>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                                        {session ? (
+                                            <button
+                                                onClick={async () => {
+                                                    setAccount(false);
+                                                    try {
+                                                        await signOut({ 
+                                                            callbackUrl: "/",
+                                                            redirect: true 
+                                                        });
+                                                    } catch (error) {
+                                                        console.error('Logout error:', error);
+                                                        // Fallback: redirect manually
+                                                        window.location.href = '/';
+                                                    }
+                                                }}
+                                                className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium"
+                                            >
+                                                Logout
+                                            </button>
+                                        ) : (
+                                            <Link
+                                                onClick={() => setAccount(false)}
+                                                href="/authentication/login"
+                                                className="block px-4 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors font-medium"
+                                            >
+                                                Login
+                                            </Link>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                     <Link href="/cart" className="relative cursor-pointer text-gray-700 hover:text-indigo-600">
                         <FaShoppingCart size={24} />
@@ -279,50 +334,138 @@ function Navbar() {
                     )}
                 </Link>
                 
-                <div className={`flex flex-col items-center justify-center relative transition-colors duration-200 ${
-                    account ? "text-indigo-600" : "text-gray-700"
-                }`}>
+                
+                <div 
+                    ref={accountRef}
+                    className={`relative flex flex-col items-center justify-center transition-colors duration-200 ${
+                        account ? "text-indigo-600" : "text-gray-700"
+                    }`}
+                >
                     <FaUserCircle 
                         size={20} 
                         onClick={() => setAccount(!account)}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:text-indigo-600 transition-colors duration-200"
                     />
                     <span className="text-xs mt-1">Account</span>
-                     {account && (
-                            <div className="absolute bottom-full right-0 mb-2 w-44 bg-white border border-gray-200 rounded-lg shadow-2xl z-[60] transform -translate-x-1/4">
+                    
+                    {/* Active indicator */}
+                    {pathname === "/authentication/login" && (
+                        <motion.div
+                            className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 rounded-full"
+                            layoutId="mobile-navbar-indicator"
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{
+                                type: "spring",
+                                stiffness: 380,
+                                damping: 30,
+                            }}
+                        />
+                    )}
+
+                    {/* Enhanced Mobile Dropdown */}
+                    <AnimatePresence>
+                        {account && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                transition={{ 
+                                    duration: 0.2, 
+                                    ease: [0.4, 0, 0.2, 1],
+                                    type: "spring",
+                                    damping: 25,
+                                    stiffness: 300
+                                }}
+                                className="absolute bottom-full mb-4 w-52 bg-white border border-gray-200 rounded-2xl shadow-2xl z-[70] left-1/2 transform -translate-x-1/2 overflow-hidden backdrop-blur-sm"
+                                style={{ 
+                                    filter: 'drop-shadow(0 20px 35px rgba(0, 0, 0, 0.15))',
+                                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                                }}
+                            >
+                                {/* Gradient Background */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-white opacity-60"></div>
+                                
                                 {/* Arrow pointing down */}
-                                <div className="absolute top-full right-6 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-white"></div>
-                                <div className="py-1">
-                                    <Link
-                                        href="/orders"
-                                        onClick={() => setAccount(false)}
-                                        className="block px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium border-b border-gray-100"
-                                    >
-                                        My Orders
-                                    </Link>
-                                    {session ? (
-                                        <button
-                                            onClick={() => {
-                                                setAccount(false);
-                                                signOut({ callbackUrl: "/" });
-                                            }}
-                                            className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-sm font-medium"
-                                        >
-                                            Logout
-                                        </button>
-                                    ) : (
-                                        <Link
-                                            onClick={() => setAccount(false)}
-                                            href="/authentication/login"
-                                            className="block px-4 py-3 text-indigo-600 hover:bg-indigo-50 transition-colors text-sm font-medium"
-                                        >
-                                            Login
-                                        </Link>
-                                    )}
+                                <div className="absolute bottom-[-10px] left-1/2 transform -translate-x-1/2 z-10">
+                                    <div className="w-0 h-0 border-l-[10px] border-r-[10px] border-t-[10px] border-l-transparent border-r-transparent border-t-white"></div>
+                                    <div className="w-0 h-0 border-l-[11px] border-r-[11px] border-t-[11px] border-l-transparent border-r-transparent border-t-gray-200 absolute -top-[1px] left-1/2 transform -translate-x-1/2 -z-10"></div>
                                 </div>
-                            </div>
+                                
+                                <div className="relative z-20 py-2">
+                                    {/* User Info Section */}
+                                    {session && (
+                                        <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 via-white to-purple-50">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                                                    <FaUserCircle className="w-6 h-6 text-white" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                                        {session.user?.name || 'User'}
+                                                    </p>
+                                                    <p className="text-xs text-gray-600 truncate">
+                                                        {session.user?.email}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Menu Items */}
+                                    <div className="py-2">
+                                        <Link
+                                            href="/orders"
+                                            onClick={() => setAccount(false)}
+                                            className="flex items-center px-5 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-700 transition-all duration-200 text-sm font-medium group"
+                                        >
+                                            <div className="w-8 h-8 bg-gray-100 group-hover:bg-indigo-100 rounded-lg flex items-center justify-center mr-3 transition-colors duration-200">
+                                                <FaUserCircle className="w-4 h-4 text-gray-500 group-hover:text-indigo-600 transition-colors duration-200" />
+                                            </div>
+                                            My Orders
+                                        </Link>
+                                        
+                                        {session ? (
+                                            <button
+                                                onClick={async () => {
+                                                    setAccount(false);
+                                                    try {
+                                                        await signOut({ 
+                                                            callbackUrl: "/",
+                                                            redirect: true 
+                                                        });
+                                                    } catch (error) {
+                                                        console.error('Mobile logout error:', error);
+                                                        // Fallback: redirect manually
+                                                        window.location.href = '/';
+                                                    }
+                                                }}
+                                                className="w-full flex items-center text-left px-5 py-3 text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 text-sm font-medium group"
+                                            >
+                                                <div className="w-8 h-8 bg-red-100 group-hover:bg-red-200 rounded-lg flex items-center justify-center mr-3 transition-colors duration-200">
+                                                    <FaUserCircle className="w-4 h-4 text-red-500 group-hover:text-red-700 transition-colors duration-200" />
+                                                </div>
+                                                Logout
+                                            </button>
+                                        ) : (
+                                            <Link
+                                                onClick={() => setAccount(false)}
+                                                href="/authentication/login"
+                                                className="flex items-center px-5 py-3 text-indigo-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-200 text-sm font-medium group"
+                                            >
+                                                <div className="w-8 h-8 bg-indigo-100 group-hover:bg-indigo-200 rounded-lg flex items-center justify-center mr-3 transition-colors duration-200">
+                                                    <FaUserCircle className="w-4 h-4 text-indigo-500 group-hover:text-indigo-700 transition-colors duration-200" />
+                                                </div>
+                                                Login
+                                            </Link>
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.div>
                         )}
+                    </AnimatePresence>
                 </div>
+                
             </div>
 
             {/* Spacer for Mobile */}

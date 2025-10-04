@@ -65,8 +65,6 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          // This helps with mobile redirect issues
-          redirect_uri: process.env.NEXTAUTH_URL + "/api/auth/callback/google"
         }
       },
     }),
@@ -79,25 +77,39 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     // Runs when a user signs in
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, email, credentials }) {
       try {
+        console.log("SignIn callback:", { 
+          provider: account?.provider, 
+          userEmail: (user as any)?.email || (profile as any)?.email,
+          accountType: account?.type 
+        });
+
         if (account?.provider === "google" && profile) {
           await dbConnect();
           
-          const existingUser = await (User as any).findOne({ email: (profile as any).email });
+          const userEmail = (profile as any).email;
+          console.log("Google OAuth user email:", userEmail);
+          
+          const existingUser = await (User as any).findOne({ email: userEmail });
           
           if (!existingUser) {
+            console.log("Creating new user for Google OAuth:", userEmail);
             // ✅ Create user with fields that exist in your schema
             await (User as any).create({
               name: (profile as any).name || `${(profile as any).given_name || ''} ${(profile as any).family_name || ''}`.trim(),
-              email: (profile as any).email,
+              email: userEmail,
               role: "user",
             });
+            console.log("New user created successfully");
+          } else {
+            console.log("Existing user found for Google OAuth:", userEmail);
           }
         }
         return true;
       } catch (error) {
         console.error("SignIn callback error:", error);
+        // Return false to redirect to error page
         return false;
       }
     },
@@ -156,19 +168,25 @@ export const authOptions: NextAuthOptions = {
     // Handle redirects after sign in
     async redirect({ url, baseUrl }) {
       // Enhanced mobile-specific URL handling
-      console.log("NextAuth redirect:", { url, baseUrl });
+      console.log("NextAuth redirect:", { url, baseUrl, userAgent: (global as any).currentRequest?.headers?.['user-agent'] });
       
-      // Normalize baseUrl to ensure it's properly formatted
-      const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+      // Fix baseUrl if it's using wrong port
+      let normalizedBaseUrl = baseUrl;
+      if (baseUrl.includes('localhost:3000') && process.env.NEXTAUTH_URL?.includes('localhost:3001')) {
+        normalizedBaseUrl = baseUrl.replace('localhost:3000', 'localhost:3001');
+        console.log("Fixed baseUrl port:", normalizedBaseUrl);
+      }
+      normalizedBaseUrl = normalizedBaseUrl.endsWith('/') ? normalizedBaseUrl.slice(0, -1) : normalizedBaseUrl;
       
       // If url is relative, make it absolute
       if (url.startsWith("/")) {
+        console.log("Relative URL detected, converting to absolute:", normalizedBaseUrl + url);
         return normalizedBaseUrl + url;
       }
       
-      // Handle Google OAuth callback specifically for mobile
-      if (url.includes('/api/auth/callback/google')) {
-        console.log("Google OAuth callback detected:", url);
+      // Handle Google OAuth callback specifically
+      if (url.includes('/api/auth/callback/google') || url.includes('accounts.google.com')) {
+        console.log("Google OAuth callback/redirect detected:", url);
         
         // Check for error parameter first
         try {
@@ -176,13 +194,46 @@ export const authOptions: NextAuthOptions = {
           const error = urlObj.searchParams.get('error');
           if (error) {
             console.log("OAuth error detected:", error);
+            if (error === 'access_denied') {
+              return normalizedBaseUrl + '/authentication/login?error=access_denied';
+            }
             return normalizedBaseUrl + '/authentication/error?error=' + error;
+          }
+          
+          // Extract state parameter to get original callback URL
+          const state = urlObj.searchParams.get('state');
+          if (state) {
+            try {
+              const decodedState = decodeURIComponent(state);
+              console.log("OAuth state parameter:", decodedState);
+            } catch (e) {
+              console.log("Could not decode state parameter:", e);
+            }
           }
         } catch (e) {
           console.log("Could not parse OAuth URL:", e);
         }
         
+        // For successful Google OAuth
+        console.log("Successful Google OAuth detected");
+        
+        // Try to extract callback URL from referrer or state
+        try {
+          const urlObj = new URL(url);
+          const callbackUrl = urlObj.searchParams.get('callbackUrl');
+          if (callbackUrl) {
+            const decodedCallbackUrl = decodeURIComponent(callbackUrl);
+            if (decodedCallbackUrl.startsWith('/')) {
+              console.log("Using callback URL from OAuth:", decodedCallbackUrl);
+              return normalizedBaseUrl + decodedCallbackUrl;
+            }
+          }
+        } catch (e) {
+          console.log("Could not extract callback URL from OAuth:", e);
+        }
+        
         // Default to home page for successful Google OAuth
+        console.log("Using default redirect to home");
         return normalizedBaseUrl + '/';
       }
       
@@ -231,6 +282,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/authentication/login',
     error: '/authentication/error',
+    signOut: '/',
   },
 
   // Enhanced configuration for mobile compatibility

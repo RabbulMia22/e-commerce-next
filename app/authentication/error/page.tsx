@@ -3,9 +3,9 @@
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 
-export default function AuthError() {
+function AuthErrorContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const error = searchParams.get('error')
@@ -30,7 +30,8 @@ export default function AuthError() {
       case 'Configuration':
         return 'There was a problem with the server configuration.'
       case 'AccessDenied':
-        return 'Access was denied. Please try again.'
+      case 'access_denied':
+        return 'Access was denied. This Google account is not authorized for testing.'
       case 'Verification':
         return 'The verification link is invalid or has expired.'
       case 'OAuthSignin':
@@ -68,6 +69,28 @@ export default function AuthError() {
           </p>
         </div>
         
+        {(error === 'AccessDenied' || error === 'access_denied') && (
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mb-6">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-amber-800">
+                  Google OAuth Access Restricted
+                </h3>
+                <div className="mt-2 text-sm text-amber-700">
+                  <p>
+                    This Google account is not authorized for testing. Only specific test users can sign in with Google OAuth.
+                  </p>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Use email/password login instead</li>
+                    <li>Or contact admin to add your email as a test user</li>
+                    <li>Currently authorized: mdrabbulmia24@gmail.com</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-8 space-y-4">
           <Link
             href="/authentication/login"
@@ -82,6 +105,13 @@ export default function AuthError() {
           >
             Go Home
           </Link>
+
+          <Link
+            href="/debug/oauth"
+            className="group relative w-full flex justify-center py-2 px-4 border border-orange-300 text-sm font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+          >
+            🛠️ OAuth Manager
+          </Link>
         </div>
         
         <div className="text-center">
@@ -91,5 +121,23 @@ export default function AuthError() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AuthError() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              Loading...
+            </h2>
+          </div>
+        </div>
+      </div>
+    }>
+      <AuthErrorContent />
+    </Suspense>
   )
 }

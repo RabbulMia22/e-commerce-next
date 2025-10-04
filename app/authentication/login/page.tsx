@@ -105,32 +105,60 @@ function LoginPageContent() {
     
     setIsLoading(true)
     setError('')
+    
     try {
+      console.log('Starting Google sign-in process...')
+      const isMobile = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
+      
       // Enhanced mobile-compatible Google sign-in
       const result = await signIn('google', { 
         callbackUrl: callbackUrl || '/',
-        redirect: true
+        redirect: false  // Handle redirect manually for better control
       })
       
-      // Handle potential errors
+      console.log('Google sign-in result:', result)
+      
+      // Handle the result
       if (result?.error) {
         throw new Error(result.error)
       }
       
-      // For mobile devices, add a small delay to ensure proper redirect
-      const isMobile = /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
-      if (isMobile) {
-        setTimeout(() => {
-          if (!result?.url) {
-            // Fallback redirect for mobile
-            window.location.href = callbackUrl || '/'
-          }
-        }, 1000)
+      if (result?.ok) {
+        console.log('Google sign-in successful, redirecting...')
+        
+        // Handle redirect based on device type
+        if (isMobile) {
+          // For mobile, use window.location for more reliable redirect
+          setTimeout(() => {
+            const redirectUrl = result.url || callbackUrl || '/'
+            console.log('Mobile redirect to:', redirectUrl)
+            window.location.href = redirectUrl
+          }, 500)
+        } else {
+          // For desktop, use Next.js router
+          const redirectUrl = result.url || callbackUrl || '/'
+          router.push(redirectUrl)
+        }
+      } else {
+        throw new Error('Sign-in was not successful')
       }
+      
     } catch (err) {
       console.error('Google sign-in error:', err)
       setIsLoading(false)
-      setError('Google sign-in failed. Please try again or check your network connection.')
+      
+      // Enhanced error handling for OAuth access denied
+      if (err instanceof Error) {
+        if (err.message.includes('access_denied') || err.message.includes('Access denied')) {
+          setError('Access denied: This Google account is not authorized. Please use an authorized test account or contact support.')
+        } else if (err.message.includes('popup_closed')) {
+          setError('Sign-in was cancelled. Please try again.')
+        } else {
+          setError(`Google sign-in failed: ${err.message}. Please try again or use email/password login.`)
+        }
+      } else {
+        setError('Google sign-in failed. Please try again. If you\'re on mobile, try clearing your browser cache.')
+      }
     }
   }
 
@@ -338,6 +366,17 @@ function LoginPageContent() {
                 <Facebook className="w-5 h-5 text-blue-600" />
                 <span className="ml-2">Facebook</span>
               </button>
+            </div>
+
+            {/* OAuth Access Notice */}
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-start">
+                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="ml-2 text-xs text-amber-800">
+                  <p className="font-medium">Google OAuth Notice:</p>
+                  <p>Currently in testing mode. Only authorized test accounts can sign in with Google. Use email/password login for unrestricted access.</p>
+                </div>
+              </div>
             </div>
 
             {/* Terms reminder for social login */}

@@ -7,22 +7,36 @@ export function middleware(request: NextRequest) {
   const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent)
   
   // Handle Google OAuth callback specifically for mobile devices
-  if (isMobile && url.pathname.includes('/api/auth/callback/google')) {
-    console.log('Mobile Google OAuth callback detected:', url.toString())
+  if (url.pathname.includes('/api/auth/callback/google')) {
+    console.log('Google OAuth callback detected:', {
+      pathname: url.pathname,
+      search: url.search,
+      isMobile,
+      userAgent: userAgent.substring(0, 100)
+    })
     
     // Check for OAuth errors
     const error = url.searchParams.get('error')
     if (error) {
-      console.log('OAuth error in mobile callback:', error)
-      url.pathname = '/authentication/error'
-      url.searchParams.set('error', error)
-      return NextResponse.redirect(url)
+      console.log('OAuth error in callback:', error)
+      const redirectUrl = url.clone()
+      redirectUrl.pathname = '/authentication/error'
+      redirectUrl.search = `?error=${error}`
+      return NextResponse.redirect(redirectUrl)
     }
     
-    // Let NextAuth handle this, but ensure proper headers are set
+    // For mobile devices, add special headers and ensure proper handling
     const response = NextResponse.next()
-    response.headers.set('X-Mobile-Device', 'true')
-    response.headers.set('X-Mobile-OAuth', 'google')
+    if (isMobile) {
+      response.headers.set('X-Mobile-Device', 'true')
+      response.headers.set('X-Mobile-OAuth', 'google')
+    }
+    
+    // Add cache control headers to prevent caching issues
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
     return response
   }
   
