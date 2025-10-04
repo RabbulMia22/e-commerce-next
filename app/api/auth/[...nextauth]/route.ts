@@ -282,7 +282,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/authentication/login',
     error: '/authentication/error',
-    signOut: '/authentication/login', // Redirect to login after logout
+    signOut: '/', // Redirect to home page after logout
   },
 
   // Enhanced configuration for production deployment

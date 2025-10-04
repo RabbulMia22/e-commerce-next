@@ -195,21 +195,41 @@ function Navbar() {
                                                     try {
                                                         console.log('Starting logout process...');
                                                         
-                                                        // Enhanced logout for production
-                                                        await signOut({ 
-                                                            callbackUrl: "/authentication/login",
+                                                        // Production-aware logout with home page redirect
+                                                        const baseUrl = process.env.NODE_ENV === 'production' 
+                                                            ? 'https://e-commerce-next-wine.vercel.app'
+                                                            : window.location.origin;
+                                                        
+                                                        console.log('Base URL for logout:', baseUrl);
+                                                        
+                                                        // Clear session and redirect
+                                                        const result = await signOut({ 
+                                                            callbackUrl: `${baseUrl}/`,
                                                             redirect: false // Handle redirect manually for better control
                                                         });
                                                         
-                                                        // Force redirect after logout
+                                                        console.log('SignOut result:', result);
+                                                        
+                                                        // Clear any remaining session data
+                                                        if (typeof window !== 'undefined') {
+                                                            localStorage.clear();
+                                                            sessionStorage.clear();
+                                                        }
+                                                        
+                                                        // Force redirect to home page after logout
                                                         setTimeout(() => {
-                                                            window.location.href = "/authentication/login";
-                                                        }, 500);
+                                                            console.log('Redirecting to:', `${baseUrl}/`);
+                                                            window.location.href = `${baseUrl}/`;
+                                                        }, 100); // Faster redirect
                                                         
                                                     } catch (error) {
                                                         console.error('Logout error:', error);
-                                                        // Fallback: redirect manually
-                                                        window.location.href = "/authentication/login";
+                                                        // Fallback: redirect to home page
+                                                        const fallbackUrl = process.env.NODE_ENV === 'production' 
+                                                            ? 'https://e-commerce-next-wine.vercel.app/'
+                                                            : '/';
+                                                        console.log('Fallback redirect to:', fallbackUrl);
+                                                        window.location.href = fallbackUrl;
                                                     }
                                                 }}
                                                 className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium"
@@ -441,21 +461,41 @@ function Navbar() {
                                                     try {
                                                         console.log('Starting mobile logout process...');
                                                         
-                                                        // Enhanced mobile logout for production
-                                                        await signOut({ 
-                                                            callbackUrl: "/authentication/login",
+                                                        // Production-aware mobile logout with home page redirect
+                                                        const baseUrl = process.env.NODE_ENV === 'production' 
+                                                            ? 'https://e-commerce-next-wine.vercel.app'
+                                                            : window.location.origin;
+                                                        
+                                                        console.log('Mobile base URL for logout:', baseUrl);
+                                                        
+                                                        // Clear session and redirect for mobile
+                                                        const result = await signOut({ 
+                                                            callbackUrl: `${baseUrl}/`,
                                                             redirect: false // Handle redirect manually for mobile
                                                         });
                                                         
-                                                        // Force redirect after logout for mobile
+                                                        console.log('Mobile SignOut result:', result);
+                                                        
+                                                        // Clear any remaining session data for mobile
+                                                        if (typeof window !== 'undefined') {
+                                                            localStorage.clear();
+                                                            sessionStorage.clear();
+                                                        }
+                                                        
+                                                        // Force redirect to home page after logout for mobile
                                                         setTimeout(() => {
-                                                            window.location.href = "/authentication/login";
-                                                        }, 300); // Shorter delay for mobile
+                                                            console.log('Mobile redirecting to:', `${baseUrl}/`);
+                                                            window.location.href = `${baseUrl}/`;
+                                                        }, 50); // Very fast for mobile
                                                         
                                                     } catch (error) {
                                                         console.error('Mobile logout error:', error);
-                                                        // Fallback: redirect manually
-                                                        window.location.href = "/authentication/login";
+                                                        // Fallback: redirect to home page
+                                                        const fallbackUrl = process.env.NODE_ENV === 'production' 
+                                                            ? 'https://e-commerce-next-wine.vercel.app/'
+                                                            : '/';
+                                                        console.log('Mobile fallback redirect to:', fallbackUrl);
+                                                        window.location.href = fallbackUrl;
                                                     }
                                                 }}
                                                 className="w-full flex items-center text-left px-5 py-3 text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 text-sm font-medium group"
