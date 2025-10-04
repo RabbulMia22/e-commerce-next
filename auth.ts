@@ -4,7 +4,7 @@ import type { AdapterUser, AdapterAccount } from "next-auth/adapters";
 import type { GoogleProfile } from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import type { JWT } from "next-auth/jwt";
 import { MongoClient } from "mongodb";
 import bcrypt from "bcryptjs";

@@ -23,7 +23,27 @@
 - **Image Storage**: Cloudinary
 - **Deployment**: Vercel
 
-## 🏃‍♂️ Getting Started
+## � Environment Setup
+
+Copy `.env.example` (or the snippets below) into a new `.env.local` for development and configure the same keys in your hosting provider for production:
+
+```bash
+MONGODB_URI=your-mongodb-uri
+NEXTAUTH_URL=https://your-domain.com
+NEXTAUTH_SECRET=generated-64-char-secret
+AUTH_GOOGLE_ID=your-google-oauth-client-id
+AUTH_GOOGLE_SECRET=your-google-oauth-client-secret
+SSLCOMMERZ_STORE_ID=...
+SSLCOMMERZ_STORE_PASS=...
+NEXT_PUBLIC_BASE_URL=https://your-domain.com
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+```
+
+> **Tip:** You can generate a strong `NEXTAUTH_SECRET` with `openssl rand -base64 32`.
+
+## �🏃‍♂️ Getting Started
 
 First, run the development server:
 
@@ -40,6 +60,28 @@ bun dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 This project uses modern Next.js features including App Router, Server Components, and TypeScript for type safety.
+
+## 🧱 Production Build
+
+Before deploying, run a local production build to confirm everything compiles:
+
+```bash
+npm run build
+npm run start
+```
+
+Visit [http://localhost:3000](http://localhost:3000) to smoke-test the production bundle.
+
+## ☁️ Deploying to Vercel
+
+1. Push your code to GitHub.
+2. Create a new Vercel project and import the repository.
+3. Configure the Environment Variables in the Vercel dashboard using the values listed in the environment setup section.
+4. Set the build command to `npm run build` and the output directory to `.next` (defaults).
+5. Trigger a deployment; Vercel will build and host the project.
+6. After the first deploy, add the production domain to your Google OAuth **Authorized redirect URIs** (e.g. `https://your-domain.com/api/auth/callback/google`).
+
+For self-hosting, build with `npm run build` and serve with `npm run start` behind your preferred Node.js process manager.
 
 ## Learn More
 
