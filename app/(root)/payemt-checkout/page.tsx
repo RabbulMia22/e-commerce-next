@@ -913,4 +913,4 @@ const onSubmit = async (data: CheckoutFormData) => {
   )
 };
 
-export default PaymentCheckoutPage
+export default PaymentCheckoutPage;

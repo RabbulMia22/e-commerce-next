@@ -3,6 +3,9 @@ import connectDB from "@/lib/db";
 import PendingOrder from "@/models/pendingOrder";
 import Order from "@/models/order";
 import { Product } from "@/models/products";
+import UserModel from "@/models/user";
+
+export const runtime = "nodejs";
 
 const store_id = process.env.SSLCOMMERZ_STORE_ID as string;
 const store_passwd = process.env.SSLCOMMERZ_STORE_PASS as string;
@@ -11,6 +14,28 @@ const is_live = false;
 const SSL_BASE_URL = is_live
   ? "https://securepay.sslcommerz.com"
   : "https://sandbox.sslcommerz.com";
+
+const EMAIL_PLACEHOLDERS = new Set(
+  ["guest@example.com", "customer@example.com", "customer@email.com"].map((email) =>
+    email.toLowerCase(),
+  ),
+);
+
+function normalizeEmailCandidate(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || !trimmed.includes("@")) return undefined;
+  if (EMAIL_PLACEHOLDERS.has(trimmed.toLowerCase())) return undefined;
+  return trimmed;
+}
+
+function pickValidEmail(...candidates: Array<unknown>): string | undefined {
+  for (const candidate of candidates) {
+    const normalized = normalizeEmailCandidate(candidate);
+    if (normalized) return normalized;
+  }
+  return undefined;
+}
 
 // Parse x-www-form-urlencoded body
 async function parseForm(req: NextRequest) {
@@ -76,6 +101,12 @@ export async function POST(req: NextRequest) {
     const card_type = form.get("card_type") || "";
     const value_a_raw = form.get("value_a");
     const meta = parseValueA(value_a_raw);
+    const formCustomerEmail = pickValidEmail(
+      form.get("cus_email"),
+      form.get("customer_email"),
+      form.get("value_d"),
+      form.get("card_holder_email"),
+    );
 
     // Debug logging - print ALL form data
     console.log("🔄 SSL Success Handler - ALL FORM DATA:");
@@ -90,7 +121,8 @@ export async function POST(req: NextRequest) {
       amount,
       card_type,
       value_a_raw: value_a_raw?.substring(0, 200) + "...",
-      meta: meta ? "parsed successfully" : "failed to parse"
+      meta: meta ? "parsed successfully" : "failed to parse",
+      formCustomerEmail: formCustomerEmail ?? "not provided",
     });
 
     // For sandbox testing, be more lenient with validation
@@ -105,7 +137,6 @@ export async function POST(req: NextRequest) {
     if (val_id && successStatuses.includes(status.toUpperCase())) {
       try {
         const verify = await validatePayment(val_id);
-        console.log("🔄 SSL Validation response:", verify);
         verificationResponse = verify;
         isValid = verify?.status === "VALID" || verify?.status === "VALIDATED" || verify?.status === "SUCCESS";
       } catch (validationError) {
@@ -309,37 +340,70 @@ export async function POST(req: NextRequest) {
     
     const orderNumber = savedOrder.orderNumber;
     
-    // Send success email notification
-    try {
-      const { sendEmail, generatePaymentSuccessEmail } = await import('@/lib/email');
-      
-      const orderDetails = {
-        orderId: savedOrder.orderNumber,
-        customerName: savedOrder.shippingAddress.fullName,
-        customerEmail: pendingOrder.userEmail || 'customer@example.com',
-        amount: savedOrder.totalAmount,
-        currency: 'BDT',
-        products: validatedItems.map(item => ({
-          title: item.title,
-          quantity: item.quantity,
-          price: item.price
-        })),
-        shippingAddress: `${savedOrder.shippingAddress.address}, ${savedOrder.shippingAddress.area}, ${savedOrder.shippingAddress.district}, ${savedOrder.shippingAddress.division}`
-      };
+    // Resolve customer email for notifications
+    const verificationEmail = pickValidEmail(
+      verificationResponse?.cus_email,
+      verificationResponse?.customer_email,
+      verificationResponse?.customer_mail,
+    );
+    const metaEmail = pickValidEmail(finalMeta?.email, finalMeta?.customerEmail);
+    const pendingOrderEmail = pickValidEmail(pendingOrder.userEmail);
 
-      const emailTemplate = generatePaymentSuccessEmail(orderDetails);
-      
-      await sendEmail({
-        to: orderDetails.customerEmail,
-        subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text
-      });
-      
-      console.log("✅ Success email sent to:", orderDetails.customerEmail);
-    } catch (emailError) {
-      console.error("❌ Failed to send success email:", emailError);
-      // Continue processing even if email fails
+    let resolvedEmail = pickValidEmail(
+      formCustomerEmail,
+      verificationEmail,
+      metaEmail,
+      pendingOrderEmail,
+    );
+
+    if (!resolvedEmail) {
+      const dbUser = await UserModel.findById(pendingOrder.userId).select("email");
+      resolvedEmail = pickValidEmail(dbUser?.email);
+    }
+
+    if (resolvedEmail) {
+      console.log(`✅ Resolved customer email: ${resolvedEmail}`);
+      if (pendingOrder.userEmail !== resolvedEmail) {
+        pendingOrder.userEmail = resolvedEmail;
+      }
+    } else {
+      console.warn(
+        `[ssl-success] Unable to resolve customer email for order ${pendingOrder.orderId}; skipping success email notification`,
+      );
+    }
+
+    if (resolvedEmail) {
+      try {
+        const { sendEmail, generatePaymentSuccessEmail } = await import('@/lib/email');
+        
+        const orderDetails = {
+          orderId: savedOrder.orderNumber,
+          customerName: savedOrder.shippingAddress.fullName,
+          customerEmail: resolvedEmail,
+          amount: savedOrder.totalAmount,
+          currency: 'BDT',
+          products: validatedItems.map(item => ({
+            title: item.title,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          shippingAddress: `${savedOrder.shippingAddress.address}, ${savedOrder.shippingAddress.area}, ${savedOrder.shippingAddress.district}, ${savedOrder.shippingAddress.division}`
+        };
+
+        const emailTemplate = generatePaymentSuccessEmail(orderDetails);
+        
+        await sendEmail({
+          to: orderDetails.customerEmail,
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
+          text: emailTemplate.text
+        });
+        
+        console.log("✅ Success email sent to:", orderDetails.customerEmail);
+      } catch (emailError) {
+        console.error("❌ Failed to send success email:", emailError);
+        // Continue processing even if email fails
+      }
     }
     
     // Mark pending order as completed

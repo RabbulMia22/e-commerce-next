@@ -23,9 +23,14 @@ interface EmailOptions {
 export const sendEmail = async (options: EmailOptions) => {
   try {
     const transporter = createTransporter()
+    const fromAddress = process.env.EMAIL_FROM || process.env.EMAIL_USER
+
+    if (!fromAddress) {
+      throw new Error("Email sender address is not configured. Please set EMAIL_FROM or EMAIL_USER.")
+    }
     
     const mailOptions = {
-      from: process.env.EMAIL_FROM,
+      from: fromAddress,
       to: options.to,
       subject: options.subject,
       html: options.html,

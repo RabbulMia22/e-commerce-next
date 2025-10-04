@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getSessionSafely } from "@/lib/session";
 import dbConnect from "@/lib/db";
 import PendingOrder from "@/models/pendingOrder";
+import UserModel from "@/models/user";
 
 const storeId = process.env.SSLCOMMERZ_STORE_ID ?? "";
 const storePassword = process.env.SSLCOMMERZ_STORE_PASS ?? "";
@@ -138,12 +139,32 @@ export async function POST(req: Request) {
     }
 
     const data = parsed.data;
-    const guaranteedEmail = data.customerEmail ?? sessionUser?.email ?? "guest@example.com";
+    let guaranteedEmail =
+      (typeof data.customerEmail === "string" && data.customerEmail.trim().length > 0
+        ? data.customerEmail.trim()
+        : undefined) ||
+      (typeof sessionUser?.email === "string" && sessionUser.email.trim().length > 0
+        ? sessionUser.email.trim()
+        : undefined);
 
     const transactionId = `TXN${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
     const pendingOrderId = `PO${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
 
     await dbConnect();
+
+    if (!guaranteedEmail) {
+      const dbUser = await UserModel.findById(userId).select("email");
+      if (dbUser?.email) {
+        guaranteedEmail = dbUser.email;
+      }
+    }
+
+    if (!guaranteedEmail) {
+      console.warn(
+        "[ssl-payment] Unable to determine customer email from payload or session; using fallback placeholder",
+      );
+      guaranteedEmail = "guest@example.com";
+    }
 
     const normalizedItems = normalizeItems(data.items);
 
@@ -181,6 +202,7 @@ export async function POST(req: Request) {
     const valueAMeta = {
       orderId: pendingOrderId,
       tran_id: transactionId,
+      email: guaranteedEmail,
     } satisfies Record<string, string>;
 
     const paymentRequestData: Record<string, string> = {
