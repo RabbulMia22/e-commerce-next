@@ -92,8 +92,24 @@ const PrivacyPolicyPage = () => {
               </ul>
             </section>
 
+            <section className="mb-8" id="cookies">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Cookies & Tracking Technologies</h2>
+              <p className="text-gray-700 mb-4">
+                We use cookies and similar technologies to enhance your browsing experience and analyze site traffic. These include
+                essential cookies required for the site to function, as well as optional analytics cookies that help us improve our services.
+              </p>
+              <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                <li><strong>Essential Cookies:</strong> Enable core functionality such as secure login, shopping cart management, and checkout.</li>
+                <li><strong>Performance Cookies:</strong> Collect anonymous statistics about site usage to help us optimize performance.</li>
+                <li><strong>Advertising Cookies:</strong> Used only with your consent to provide personalized offers and measure campaign effectiveness.</li>
+              </ul>
+              <p className="text-gray-700 mt-4">
+                You can manage your cookie preferences through your browser settings at any time. Disabling certain cookies may affect site functionality.
+              </p>
+            </section>
+
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">7. Contact Us</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">8. Contact Us</h2>
               <p className="text-gray-700">
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>

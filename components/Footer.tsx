@@ -298,9 +298,9 @@ const Footer = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.4 }}
             >
-              <Link href="#" className="hover:text-orange-400 transition-colors duration-300">Privacy Policy</Link>
-              <Link href="#" className="hover:text-orange-400 transition-colors duration-300">Terms of Service</Link>
-              <Link href="#" className="hover:text-orange-400 transition-colors duration-300">Cookies</Link>
+              <Link href="/privacy" className="hover:text-orange-400 transition-colors duration-300">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-orange-400 transition-colors duration-300">Terms of Service</Link>
+              <Link href="/privacy#cookies" className="hover:text-orange-400 transition-colors duration-300">Cookies</Link>
             </motion.div>
           </div>
         </motion.div>
