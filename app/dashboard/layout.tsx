@@ -37,15 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Top Navbar */}
         <header className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
           {/* Left: Menu toggle */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="md:hidden text-gray-700 hover:text-indigo-600 transition-colors"
-          >
-            {/* Hamburger icon */}
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          
 
           {/* Center: Page Title */}
           <div className="text-center">
@@ -54,11 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center space-x-4">
-            <button className="relative p-2 rounded-full hover:bg-gray-200 transition">
-              🔔
-              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">3</span>
-            </button>
+          <div className="flex items-center">
             <button className="p-2 rounded-full hover:bg-gray-200 transition">👤</button>
           </div>
         </header>

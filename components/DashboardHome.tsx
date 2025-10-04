@@ -114,9 +114,6 @@ function DashboardHome() {
         })
       }
 
-      console.log('Products Response Full:', productsResponse) // Debug log
-      console.log('Products Response Data:', productsResponse.data) // Debug log
-
       const orders = ordersResponse.data?.orders || []
       
       // Check multiple possible response structures for products
@@ -132,8 +129,7 @@ function DashboardHome() {
         products = [];
       }
 
-      console.log('Products Array:', products) // Debug log
-      console.log('Products Count:', products.length)
+      
 
       // Calculate revenue metrics
       calculateDashboardStats(orders, products)
@@ -158,7 +154,7 @@ function DashboardHome() {
     // Ensure orders is an array
     const ordersArray = Array.isArray(orders) ? orders : []
 
-    // Filter completed orders only
+   
     const completedOrders = ordersArray.filter(order => 
       order?.orderStatus === 'delivered' || 
       (order as any)?.paymentInfo?.paymentStatus === 'completed'
