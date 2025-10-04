@@ -256,25 +256,25 @@ function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Products Management</h1>
-            <p className="text-gray-600">Manage and view all products in your store</p>
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Products Management</h1>
+            <p className="text-gray-600 text-sm sm:text-base">Manage and view all products in your store</p>
           </div>
           
           <Link
             href="/dashboard/addProducts"
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add New Product
@@ -283,28 +283,28 @@ function ProductsPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
+        <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-center justify-between">
           {/* Search */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <div className="relative flex-1 max-w-md w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <input
               type="text"
               placeholder="Search by product name, category, or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+              className="pl-9 sm:pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black text-sm"
             />
           </div>
 
-          {/* Category Filter */}
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          {/* Category Filter & Export */}
+          <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-center md:justify-start">
+            <div className="relative flex-1 md:flex-none min-w-0 w-full md:w-auto">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-white"
+                className="pl-9 sm:pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-white w-full text-sm"
               >
                 <option value="all">All Categories</option>
                 <option value="electronics">Electronics</option>
@@ -316,8 +316,8 @@ function ProductsPage() {
             </div>
 
             {/* Export Button */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-              <Download className="w-4 h-4" />
+            <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm whitespace-nowrap">
+              <Download className="w-3 h-3 sm:w-4 sm:h-4" />
               Export
             </button>
           </div>
@@ -327,28 +327,28 @@ function ProductsPage() {
       {/* Products Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[600px] sm:min-w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Product
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Category
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Price
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   Stock
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Added Date
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -356,7 +356,7 @@ function ProductsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-2 sm:px-4 md:px-6 py-8 text-center text-gray-500">
                     No products found
                   </td>
                 </tr>
@@ -370,72 +370,72 @@ function ProductsPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-4">
+                      <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2 sm:gap-4">
                           {product.images && product.images.length > 0 ? (
                             <Image
                               src={product.images[0]}
                               alt={product.title}
                               width={48}
                               height={48}
-                              className="w-12 h-12 object-cover rounded-lg"
+                              className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
                             />
                           ) : (
-                            <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                              <Package className="w-6 h-6 text-gray-400" />
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Package className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                             </div>
                           )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium text-gray-900 truncate">
                               {product.title}
                             </div>
-                            <div className="text-sm text-gray-500 max-w-xs truncate">
+                            <div className="text-xs sm:text-sm text-gray-500 max-w-xs truncate mt-1">
                               {product.description}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getCategoryColor(product.category)}`}>
                           {product.category || 'Uncategorized'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {formatPrice(product.price || 0)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                         {product.stock || 0} units
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${stockStatus.color}`}>
                           {stockStatus.text}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 hidden md:table-cell">
                         {formatDate(product.createdAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center gap-2">
+                      <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2">
                           <button
                             onClick={() => setSelectedProduct(product)}
-                            className="flex items-center gap-1 text-indigo-600 hover:text-indigo-900 transition-colors"
+                            className="flex items-center gap-1 text-indigo-600 hover:text-indigo-900 transition-colors text-xs sm:text-sm w-full sm:w-auto justify-start"
                           >
-                            <Eye className="w-4 h-4" />
-                            Details
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Details</span>
                           </button>
                           <button 
                             onClick={() => setEditingProduct(product)}
-                            className="flex items-center gap-1 text-green-600 hover:text-green-900 transition-colors"
+                            className="flex items-center gap-1 text-green-600 hover:text-green-900 transition-colors text-xs sm:text-sm w-full sm:w-auto justify-start"
                           >
-                            <Edit className="w-4 h-4" />
-                            Edit
+                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Edit</span>
                           </button>
                           <button 
                             onClick={() => setDeleteConfirm(product._id)}
-                            className="flex items-center gap-1 text-red-600 hover:text-red-900 transition-colors"
+                            className="flex items-center gap-1 text-red-600 hover:text-red-900 transition-colors text-xs sm:text-sm w-full sm:w-auto justify-start"
                           >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
+                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">Delete</span>
                           </button>
                         </div>
                       </td>
@@ -449,30 +449,28 @@ function ProductsPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex justify-between items-center w-full">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Page <span className="font-medium">{currentPage}</span> of{' '}
-                  <span className="font-medium">{totalPages}</span>
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
+          <div className="bg-white px-2  py-3 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 gap-3 sm:gap-0 sm:px-6">
+            <div className="w-full sm:w-auto">
+              <p className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
+                Page <span className="font-medium">{currentPage}</span> of{' '}
+                <span className="font-medium">{totalPages}</span>
+              </p>
+            </div>
+            <div className="flex gap-1 sm:gap-2 w-full sm:w-auto justify-center sm:justify-end">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm bg-white border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none min-w-[100px] sm:min-w-0"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm bg-white border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-none min-w-[100px] sm:min-w-0"
+              >
+                Next
+              </button>
             </div>
           </div>
         )}
@@ -485,7 +483,7 @@ function ProductsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50"
             onClick={() => setSelectedProduct(null)}
           >
             <motion.div
@@ -496,28 +494,28 @@ function ProductsPage() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
                     Product Details
                   </h2>
-                  <p className="text-gray-600">{selectedProduct.title}</p>
+                  <p className="text-gray-600 text-sm truncate">{selectedProduct.title}</p>
                 </div>
                 <button
                   onClick={() => setSelectedProduct(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors ml-4"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
 
               {/* Modal Content */}
-              <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                   {/* Product Images */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Images</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Product Images</h3>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       {selectedProduct.images && selectedProduct.images.length > 0 ? (
                         selectedProduct.images.map((image, index) => (
                           <Image
@@ -526,29 +524,29 @@ function ProductsPage() {
                             alt={`${selectedProduct.title} ${index + 1}`}
                             width={200}
                             height={200}
-                            className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                            className="w-full h-32 sm:h-48 object-cover rounded-lg border border-gray-200"
                           />
                         ))
                       ) : (
-                        <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-200">
-                          <Package className="w-12 h-12 text-gray-400" />
+                        <div className="w-full h-32 sm:h-48 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-200">
+                          <Package className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Product Information */}
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Basic Information</h3>
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 space-y-3">
                         <div>
                           <span className="font-medium">Title:</span>
-                          <p className="text-gray-700 mt-1">{selectedProduct.title}</p>
+                          <p className="text-gray-700 mt-1 text-sm">{selectedProduct.title}</p>
                         </div>
                         <div>
                           <span className="font-medium">Description:</span>
-                          <p className="text-gray-700 mt-1">{selectedProduct.description}</p>
+                          <p className="text-gray-700 mt-1 text-sm">{selectedProduct.description}</p>
                         </div>
                         <div>
                           <span className="font-medium">Category:</span>
@@ -558,7 +556,7 @@ function ProductsPage() {
                         </div>
                         <div>
                           <span className="font-medium">Price:</span>
-                          <span className="ml-2 text-lg font-bold text-green-600">
+                          <span className="ml-2 text-base sm:text-lg font-bold text-green-600">
                             {formatPrice(selectedProduct.price || 0)}
                           </span>
                         </div>
@@ -567,11 +565,11 @@ function ProductsPage() {
 
                     {/* Variants */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Configuration</h3>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Product Configuration</h3>
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 space-y-3">
                         <div>
                           <span className="font-medium">Has Sizes:</span>
-                          <span className={`ml-2 px-2 py-1 rounded text-sm ${
+                          <span className={`ml-2 px-2 py-1 rounded text-xs sm:text-sm ${
                             selectedProduct.hasSize ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
                           }`}>
                             {selectedProduct.hasSize ? 'Yes' : 'No'}
@@ -583,12 +581,12 @@ function ProductsPage() {
                             <div className="flex flex-wrap gap-2 mt-2">
                               {selectedProduct.availableSizes && selectedProduct.availableSizes.length > 0 ? (
                                 selectedProduct.availableSizes.map((size, index) => (
-                                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs sm:text-sm">
                                     {size}
                                   </span>
                                 ))
                               ) : (
-                                <span className="text-gray-500">No sizes specified</span>
+                                <span className="text-gray-500 text-sm">No sizes specified</span>
                               )}
                             </div>
                           </div>
@@ -598,11 +596,11 @@ function ProductsPage() {
 
                     {/* Stock & Status */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Stock & Status</h3>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Stock & Status</h3>
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="font-medium">Stock Quantity:</span>
-                          <span className="text-lg font-bold">{selectedProduct.stock || 0} units</span>
+                          <span className="text-base sm:text-lg font-bold">{selectedProduct.stock || 0} units</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="font-medium">Stock Status:</span>
@@ -614,7 +612,7 @@ function ProductsPage() {
                           <span className="font-medium">Rating:</span>
                           <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                            <span>{selectedProduct.rating || 0}/5</span>
+                            <span className="text-sm">{selectedProduct.rating || 0}/5</span>
                           </div>
                         </div>
                       </div>
@@ -622,15 +620,15 @@ function ProductsPage() {
 
                     {/* Dates */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Timeline</h3>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Timeline</h3>
+                      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-medium">Created:</span>
-                          <span>{formatDate(selectedProduct.createdAt)}</span>
+                          <span className="text-sm">{formatDate(selectedProduct.createdAt)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="font-medium">Last Updated:</span>
-                          <span>{formatDate(selectedProduct.updatedAt)}</span>
+                          <span className="text-sm">{formatDate(selectedProduct.updatedAt)}</span>
                         </div>
                       </div>
                     </div>
@@ -638,14 +636,14 @@ function ProductsPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="mt-8 flex gap-4 justify-end border-t pt-6">
+                <div className="mt-6 sm:mt-8 flex gap-3 sm:gap-4 justify-end border-t pt-4 sm:pt-6">
                   <button
                     onClick={() => setSelectedProduct(null)}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-3 sm:px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm w-full sm:w-auto"
                   >
                     Close
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm w-full sm:w-auto justify-center">
                     <Edit className="w-4 h-4" />
                     Edit Product
                   </button>
@@ -663,7 +661,7 @@ function ProductsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50"
             onClick={() => setEditingProduct(null)}
           >
             <motion.div
@@ -673,16 +671,16 @@ function ProductsPage() {
               className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Edit Product</h2>
-                  <p className="text-gray-600">{editingProduct.title}</p>
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Edit Product</h2>
+                  <p className="text-gray-600 text-sm truncate">{editingProduct.title}</p>
                 </div>
                 <button
                   onClick={() => setEditingProduct(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors ml-4"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
 
@@ -691,9 +689,9 @@ function ProductsPage() {
                   e.preventDefault()
                   handleUpdateProduct(editingProduct)
                 }}
-                className="p-6 space-y-6"
+                className="p-4 sm:p-6 space-y-4 sm:space-y-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   <div className="lg:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Product Title
@@ -705,7 +703,7 @@ function ProductsPage() {
                         ...editingProduct,
                         title: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                       required
                     />
                   </div>
@@ -720,7 +718,7 @@ function ProductsPage() {
                         ...editingProduct,
                         category: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                     >
                       <option value="electronics">Electronics</option>
                       <option value="clothing">Clothing</option>
@@ -741,7 +739,7 @@ function ProductsPage() {
                         ...editingProduct,
                         brand: e.target.value
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                       placeholder="Enter brand name"
                     />
                   </div>
@@ -758,7 +756,7 @@ function ProductsPage() {
                         ...editingProduct,
                         price: parseFloat(e.target.value) || 0
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                       required
                     />
                   </div>
@@ -774,7 +772,7 @@ function ProductsPage() {
                         ...editingProduct,
                         stock: parseInt(e.target.value) || 0
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                       required
                     />
                   </div>
@@ -791,7 +789,7 @@ function ProductsPage() {
                       description: e.target.value
                     })}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black text-sm"
                     required
                   />
                 </div>
@@ -813,17 +811,17 @@ function ProductsPage() {
 
                   {/* Size Management */}
                   {editingProduct.hasSize && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
+                    <div className="mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg space-y-3 sm:space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Quick Size Selection</label>
-                        <div className="flex flex-wrap gap-2 mb-3">
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
                           {['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL'].map((size) => (
                             <button
                               key={size}
                               type="button"
                               onClick={() => addPredefinedSize(size)}
                               disabled={editingProduct.availableSizes?.includes(size)}
-                              className={`px-3 py-1 text-sm rounded border transition-all ${
+                              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded border transition-all ${
                                 editingProduct.availableSizes?.includes(size)
                                   ? 'bg-green-500 text-white border-green-500 cursor-not-allowed'
                                   : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:bg-blue-50'
@@ -837,18 +835,18 @@ function ProductsPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Add Custom Size</label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="text"
                             value={newSize}
                             onChange={(e) => setNewSize(e.target.value)}
                             placeholder="Enter custom size (e.g., 30, 32, UK 8)"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded text-black focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                           />
                           <button
                             type="button"
                             onClick={addSize}
-                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors w-full sm:w-auto text-sm"
                           >
                             Add
                           </button>
@@ -862,13 +860,13 @@ function ProductsPage() {
                             {editingProduct.availableSizes.map((size) => (
                               <span
                                 key={size}
-                                className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                                className="inline-flex items-center bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm"
                               >
                                 {size}
                                 <button
                                   type="button"
                                   onClick={() => removeSize(size)}
-                                  className="ml-2 text-blue-600 hover:text-blue-800"
+                                  className="ml-1 sm:ml-2 text-blue-600 hover:text-blue-800 text-xs"
                                 >
                                   ×
                                 </button>
@@ -881,17 +879,17 @@ function ProductsPage() {
                   )}
                 </div>
 
-                <div className="flex gap-4 justify-end border-t pt-6">
+                <div className="flex gap-3 sm:gap-4 justify-end border-t pt-4 sm:pt-6">
                   <button
                     type="button"
                     onClick={() => setEditingProduct(null)}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-3 sm:px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm w-full sm:w-auto"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm w-full sm:w-auto justify-center"
                   >
                     <Edit className="w-4 h-4" />
                     Update Product
@@ -910,7 +908,7 @@ function ProductsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50"
             onClick={() => setDeleteConfirm(null)}
           >
             <motion.div
@@ -920,33 +918,33 @@ function ProductsPage() {
               className="bg-white rounded-lg shadow-xl max-w-md w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                    <Trash2 className="w-6 h-6 text-red-600" />
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Trash2 className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Delete Product</h3>
-                    <p className="text-gray-600">Are you sure you want to delete this product?</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Delete Product</h3>
+                    <p className="text-gray-600 text-sm">Are you sure you want to delete this product?</p>
                   </div>
                 </div>
 
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
                   <p className="text-red-800 text-sm">
                     <strong>Warning:</strong> This action cannot be undone. The product will be permanently removed from your store.
                   </p>
                 </div>
 
-                <div className="flex gap-3 justify-end">
+                <div className="flex gap-2 sm:gap-3 justify-end">
                   <button
                     onClick={() => setDeleteConfirm(null)}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-3 sm:px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm flex-1 sm:flex-none"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => handleDeleteProduct(deleteConfirm)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm flex-1 sm:flex-none justify-center"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete Product

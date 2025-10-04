@@ -240,30 +240,30 @@ function RevenuePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Revenue Analytics</h1>
-            <p className="text-gray-600">Track your store's financial performance and growth</p>
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Revenue Analytics</h1>
+            <p className="text-gray-600 text-sm sm:text-base">Track your store's financial performance and growth</p>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
             {/* Time Period Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="w-4 h-4 text-gray-500 flex-shrink-0" />
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
               >
                 <option value="7">Last 7 days</option>
                 <option value="30">Last 30 days</option>
@@ -276,51 +276,51 @@ function RevenuePage() {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm w-full sm:w-auto"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </button>
 
             {/* Export Button */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            <button className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm w-full sm:w-auto">
               <Download className="w-4 h-4" />
-              Export
+              <span className="hidden sm:inline">Export</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Revenue Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Total Revenue */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+          className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                 {formatPrice(revenueData.totalRevenue)}
               </p>
-              <div className="flex items-center mt-2">
+              <div className="flex items-center mt-1 sm:mt-2">
                 {revenueData.revenueGrowth >= 0 ? (
-                  <TrendingUp className="text-green-500 w-4 h-4" />
+                  <TrendingUp className="text-green-500 w-3 h-3 sm:w-4 sm:h-4" />
                 ) : (
-                  <TrendingDown className="text-red-500 w-4 h-4" />
+                  <TrendingDown className="text-red-500 w-3 h-3 sm:w-4 sm:h-4" />
                 )}
-                <span className={`text-sm font-medium ml-1 ${
+                <span className={`text-xs sm:text-sm font-medium ml-1 ${
                   revenueData.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {Math.abs(revenueData.revenueGrowth).toFixed(1)}%
                 </span>
-                <span className="text-gray-500 text-sm ml-1">vs last month</span>
+                <span className="text-xs sm:text-sm text-gray-500 ml-1 hidden sm:inline">vs last month</span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-green-500 flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-green-500 flex items-center justify-center flex-shrink-0 ml-2 sm:ml-0">
+              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </motion.div>
@@ -330,23 +330,23 @@ function RevenuePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+          className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">This Month</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">This Month</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                 {formatPrice(revenueData.monthlyRevenue)}
               </p>
-              <div className="flex items-center mt-2">
-                <Calendar className="text-blue-500 w-4 h-4" />
-                <span className="text-sm text-gray-500 ml-1">
+              <div className="flex items-center mt-1 sm:mt-2">
+                <Calendar className="text-blue-500 w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="text-xs sm:text-sm text-gray-500 ml-1">
                   Last 30 days
                 </span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-blue-500 flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0 ml-2 sm:ml-0">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </motion.div>
@@ -356,23 +356,23 @@ function RevenuePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+          className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Today's Revenue</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                 {formatPrice(revenueData.dailyRevenue)}
               </p>
-              <div className="flex items-center mt-2">
-                <Package className="text-purple-500 w-4 h-4" />
-                <span className="text-sm text-gray-500 ml-1">
+              <div className="flex items-center mt-1 sm:mt-2">
+                <Package className="text-purple-500 w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="text-xs sm:text-sm text-gray-500 ml-1">
                   Today's earnings
                 </span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-purple-500 flex items-center justify-center">
-              <Package className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-purple-500 flex items-center justify-center flex-shrink-0 ml-2 sm:ml-0">
+              <Package className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </motion.div>
@@ -382,52 +382,52 @@ function RevenuePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+          className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Avg. Order Value</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Avg. Order Value</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">
                 {formatPrice(revenueData.averageOrderValue)}
               </p>
-              <div className="flex items-center mt-2">
-                <ShoppingCart className="text-orange-500 w-4 h-4" />
-                <span className="text-sm text-gray-500 ml-1">
+              <div className="flex items-center mt-1 sm:mt-2">
+                <ShoppingCart className="text-orange-500 w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="text-xs sm:text-sm text-gray-500 ml-1">
                   {revenueData.totalOrders} orders
                 </span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-orange-500 flex items-center justify-center">
-              <ShoppingCart className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0 ml-2 sm:ml-0">
+              <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </motion.div>
       </div>
 
       {/* Charts and Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
         {/* Monthly Revenue Chart */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-white rounded-xl shadow-sm border border-gray-100"
         >
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900">Monthly Revenue Trend</h2>
-            <p className="text-gray-600 text-sm mt-1">Revenue breakdown by month</p>
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Monthly Revenue Trend</h2>
+            <p className="text-gray-600 text-xs sm:text-sm mt-1">Revenue breakdown by month</p>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
+          <div className="p-4 sm:p-6">
+            <div className="space-y-3 sm:space-y-4">
               {monthlyData.map((month, index) => {
                 const maxRevenue = Math.max(...monthlyData.map(m => m.revenue))
                 const percentage = maxRevenue > 0 ? (month.revenue / maxRevenue) * 100 : 0
                 
                 return (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">{month.month}</span>
-                        <span className="text-sm font-bold text-gray-900">
+                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                    <div className="flex-1 w-full sm:w-auto">
+                      <div className="flex items-center justify-between mb-1 sm:mb-2">
+                        <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">{month.month}</span>
+                        <span className="text-xs sm:text-sm font-bold text-gray-900">
                           {formatPrice(month.revenue)}
                         </span>
                       </div>
@@ -437,7 +437,7 @@ function RevenuePage() {
                           style={{ width: `${percentage}%` }}
                         ></div>
                       </div>
-                      <span className="text-xs text-gray-500 mt-1">
+                      <span className="text-xs text-gray-500 mt-1 block sm:inline">
                         {month.orders} orders
                       </span>
                     </div>
@@ -454,52 +454,52 @@ function RevenuePage() {
           animate={{ opacity: 1, x: 0 }}
           className="bg-white rounded-xl shadow-sm border border-gray-100"
         >
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900">Revenue Summary</h2>
-            <p className="text-gray-600 text-sm mt-1">Key performance indicators</p>
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Revenue Summary</h2>
+            <p className="text-gray-600 text-xs sm:text-sm mt-1">Key performance indicators</p>
           </div>
-          <div className="p-6">
-            <div className="space-y-6">
+          <div className="p-4 sm:p-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Growth Metrics */}
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-8 h-8 text-green-600" />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg gap-2 sm:gap-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1">
+                  <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Revenue Growth</p>
-                    <p className="text-sm text-gray-600">Month over month</p>
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">Revenue Growth</p>
+                    <p className="text-xs sm:text-sm text-gray-600">Month over month</p>
                   </div>
                 </div>
-                <span className={`text-lg font-bold ${
+                <span className={`text-base sm:text-lg font-bold ${
                   revenueData.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {revenueData.revenueGrowth >= 0 ? '+' : ''}{revenueData.revenueGrowth.toFixed(1)}%
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <ShoppingCart className="w-8 h-8 text-blue-600" />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-blue-50 rounded-lg gap-2 sm:gap-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1">
+                  <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Order Growth</p>
-                    <p className="text-sm text-gray-600">Month over month</p>
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">Order Growth</p>
+                    <p className="text-xs sm:text-sm text-gray-600">Month over month</p>
                   </div>
                 </div>
-                <span className={`text-lg font-bold ${
+                <span className={`text-base sm:text-lg font-bold ${
                   revenueData.orderGrowth >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {revenueData.orderGrowth >= 0 ? '+' : ''}{revenueData.orderGrowth.toFixed(1)}%
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Package className="w-8 h-8 text-purple-600" />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-purple-50 rounded-lg gap-2 sm:gap-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1">
+                  <Package className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Total Orders</p>
-                    <p className="text-sm text-gray-600">All time completed</p>
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">Total Orders</p>
+                    <p className="text-xs sm:text-sm text-gray-600">All time completed</p>
                   </div>
                 </div>
-                <span className="text-lg font-bold text-purple-600">
+                <span className="text-base sm:text-lg font-bold text-purple-600">
                   {revenueData.totalOrders.toLocaleString()}
                 </span>
               </div>
@@ -514,34 +514,34 @@ function RevenuePage() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-xl shadow-sm border border-gray-100"
       >
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
+        <div className="p-4 sm:p-6 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Recent Transactions</h2>
-              <p className="text-gray-600 text-sm mt-1">Latest completed orders</p>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Transactions</h2>
+              <p className="text-gray-600 text-xs sm:text-sm mt-1">Latest completed orders</p>
             </div>
-            <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+            <button className="text-indigo-600 hover:text-indigo-700 text-xs sm:text-sm font-medium">
               View All Transactions
             </button>
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[500px] sm:min-w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Transaction ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Payment Method
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Date
                 </th>
               </tr>
@@ -549,25 +549,25 @@ function RevenuePage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {recentTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={5} className="px-2 sm:px-4 md:px-6 py-8 text-center text-gray-500">
                     No transactions found
                   </td>
                 </tr>
               ) : (
                 recentTransactions.map((transaction, index) => (
                   <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                       {transaction.paymentInfo?.method === 'sslcommerz' ? 'SSL' : 'ORD'}-{transaction._id?.slice(-8) || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                    <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-bold text-gray-900 hidden sm:table-cell">
                       {formatPrice(transaction.totalAmount)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentMethodColor(transaction.paymentInfo.method)}`}>
+                    <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full ${getPaymentMethodColor(transaction.paymentInfo.method)}`}>
                         {transaction.paymentInfo.method.toUpperCase()}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap hidden md:table-cell">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         transaction.paymentInfo.paymentStatus === 'completed' 
                           ? 'bg-green-100 text-green-800' 
@@ -576,7 +576,7 @@ function RevenuePage() {
                         {transaction.paymentInfo.paymentStatus}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                       {formatDate(transaction.createdAt)}
                     </td>
                   </tr>
