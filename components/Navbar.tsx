@@ -193,14 +193,23 @@ function Navbar() {
                                                 onClick={async () => {
                                                     setAccount(false);
                                                     try {
+                                                        console.log('Starting logout process...');
+                                                        
+                                                        // Enhanced logout for production
                                                         await signOut({ 
-                                                            callbackUrl: "/",
-                                                            redirect: true 
+                                                            callbackUrl: "/authentication/login",
+                                                            redirect: false // Handle redirect manually for better control
                                                         });
+                                                        
+                                                        // Force redirect after logout
+                                                        setTimeout(() => {
+                                                            window.location.href = "/authentication/login";
+                                                        }, 500);
+                                                        
                                                     } catch (error) {
                                                         console.error('Logout error:', error);
                                                         // Fallback: redirect manually
-                                                        window.location.href = '/';
+                                                        window.location.href = "/authentication/login";
                                                     }
                                                 }}
                                                 className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium"
@@ -430,14 +439,23 @@ function Navbar() {
                                                 onClick={async () => {
                                                     setAccount(false);
                                                     try {
+                                                        console.log('Starting mobile logout process...');
+                                                        
+                                                        // Enhanced mobile logout for production
                                                         await signOut({ 
-                                                            callbackUrl: "/",
-                                                            redirect: true 
+                                                            callbackUrl: "/authentication/login",
+                                                            redirect: false // Handle redirect manually for mobile
                                                         });
+                                                        
+                                                        // Force redirect after logout for mobile
+                                                        setTimeout(() => {
+                                                            window.location.href = "/authentication/login";
+                                                        }, 300); // Shorter delay for mobile
+                                                        
                                                     } catch (error) {
                                                         console.error('Mobile logout error:', error);
                                                         // Fallback: redirect manually
-                                                        window.location.href = '/';
+                                                        window.location.href = "/authentication/login";
                                                     }
                                                 }}
                                                 className="w-full flex items-center text-left px-5 py-3 text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all duration-200 text-sm font-medium group"

@@ -282,10 +282,10 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/authentication/login',
     error: '/authentication/error',
-    signOut: '/',
+    signOut: '/authentication/login', // Redirect to login after logout
   },
 
-  // Enhanced configuration for mobile compatibility
+  // Enhanced configuration for production deployment
   useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
@@ -295,10 +295,27 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        // Add domain for production
+        // Proper domain handling for Vercel
         ...(process.env.NODE_ENV === 'production' && process.env.NEXTAUTH_URL && {
-          domain: new URL(process.env.NEXTAUTH_URL).hostname
+          domain: `.${new URL(process.env.NEXTAUTH_URL).hostname.replace('www.', '')}`
         })
+      }
+    },
+    callbackUrl: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.callback-url`,
+      options: {
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      }
+    },
+    csrfToken: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Host-' : ''}next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
       }
     }
   },
